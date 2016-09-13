@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>One Weird Trick to Write Better Code</title>
+
+		<meta name="description" content="Developers hate him!">
+		<meta name="author" content="Evan Todd">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="reveal.js/css/reveal.css">
+		<link rel="stylesheet" href="style.css" id="theme">
+	</head>
+
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section data-background="#101a26">
+					<h1>13 years of bad game code</h1>
+					<small>
+						Evan Todd<br />
+						&#8592;&#8594;
+					</small>
+				</section>
+				<section data-background="#185">
+					<h1>Thank you!</h1>
+					<p><a href="https://etodd.github.io/bad-code">etodd.github.io/bad-code</a></p>
+					<p><a href="http://etodd.io/">etodd.io</a></p>
+				</section>
+			</div>
+		</div>
+
+		<script src="reveal.js/lib/js/head.min.js"></script>
+		<script src="reveal.js/js/reveal.js"></script>
+		<script>
+			Reveal.initialize(
+			{
+				controls: false,
+				progress: true,
+				history: true,
+				center: true,
+				transition: 'slide',
+				backgroundTransition: 'slide',
+				transitionSpeed: 'superfast',
+				dependencies:
+				[
+					{ src: 'reveal.js/plugin/highlight/highlight.js', async: false, callback: function() { hljs.initHighlightingOnLoad(); } },
+				],
+			});
+
+			if (window.location.search.match(/print-pdf/gi))
+				$('head').append($('<link rel="stylesheet" type="text/css" href="reveal.js/css/print/pdf.css" />'));
+		</script>
+	</body>
+</html>
