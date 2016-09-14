@@ -266,13 +266,13 @@ div#color-swatch
 	overflow: auto;
 }
 
-.reveal ul
+.reveal ul, .reveal ol
 {
 	text-align: left;
 	padding-left: 2em;
 }
 
-.reveal ul.blank
+.reveal ul.blank, .reveal ol.blank
 {
 	list-style-type: none;
 }

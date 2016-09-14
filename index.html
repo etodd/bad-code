@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="utf-8">
 
-		<title>One Weird Trick to Write Better Code</title>
+		<title>13 Years of Bad Game Code</title>
 
 		<meta name="description" content="Developers hate him!">
 		<meta name="author" content="Evan Todd">
@@ -22,11 +22,83 @@
 		<div class="reveal">
 			<div class="slides">
 				<section data-background="#101a26">
-					<h1>13 years of bad game code</h1>
+					<h1>13 Years of Bad Game Code</h1>
 					<small>
 						Evan Todd<br />
 						&#8592;&#8594;
 					</small>
+				</section>
+				<section data-background="#158">
+					<h1>Code I've worked with</h1>
+					<ul>
+						<li>Websites via PHP</li>
+						<li>Async webservers via Python</li>
+						<li>Private cloud sysadmin stuff via Whatever</li>
+						<li>Declarative Service Orchestration™ via Ruby</li>
+						<li>Mobile apps via Java, Javascript, Objective C, Swift</li>
+						<li>DirectX VR via C#</li>
+						<li>OpenGL via C++, Python, Javascript</li>
+						<li>Windows, Linux, OS X, iOS, Android, HTML5</li>
+					</ul>
+					<p class="fragment">Everything is terrible</p>
+				</section>
+				<section data-background="#185">
+					<h1>Have you ever done this?</h1>
+					<ol>
+						<li class="fragment">Open an old project from a few years back</li>
+						<li class="fragment">oh no
+							<p class="fragment">nononono</p>
+							<p class="fragment">i can't even</p>
+							<p class="fragment">i've made a huge mistake</p>
+						</li>
+					</ol>
+				</section>
+				<section data-background="#101a26">
+					<h1>2004</h1>
+					<pre><code data-trim class="java">
+static PolygonGroup gun; // meshes are called "groups" I guess?
+static {
+	try {
+		gun = Resources.parseModel("images/gun.txt");
+	} catch (FileNotFoundException e) {}
+	catch (IOException e) {}
+}
+					</code></pre>
+				</section>
+				<section data-background="#822">
+					<h1>Problems</h1>
+					<ul>
+						<li>Error handling</li>
+					</ul>
+				</section>
+				<section data-background="#101a26">
+					<pre><code data-trim class="java">
+PolygonGroup weaponGroup;
+long changeTime = 500;
+boolean changing = false;
+public void updateAnimation(long eTime) {
+	if(group.getGroup("gun") == null) {
+		group.addGroup((PolygonGroup)gun.clone());
+	}
+	changeTime -= eTime;
+	if(changing && changeTime <= 0) {
+		group.removeGroup("gun");
+		group.addGroup((PolygonGroup)gun.clone());
+		weaponGroup = group.getGroup("gun");
+		weaponGroup.xform.velocityAngleX.set(.003f, 250);
+		changing = false;
+	}
+}
+					</code></pre>
+				</section>
+				<section data-background="#822">
+					<h1>Problems</h1>
+					<ul>
+						<li class="fragment">Unnecessary state</li>
+						<li class="fragment">Defensive coding</li>
+						<li class="fragment">Initialization happens at unknown time</li>
+						<li class="fragment">Could do with a comment</li>
+					</ul>
 				</section>
 				<section data-background="#185">
 					<h1>Thank you!</h1>
