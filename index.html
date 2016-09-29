@@ -29,62 +29,78 @@
 					</small>
 				</section>
 				<section data-background="#158">
-					<h1>Code I've worked with</h1>
+					<h1>Bad Code I've Worked With</h1>
 					<ul>
-						<li>Websites via PHP</li>
-						<li>Async webservers via Python</li>
-						<li>Private cloud sysadmin stuff via Whatever</li>
-						<li>Declarative Service Orchestration™ via Ruby</li>
-						<li>Mobile apps via Java, Javascript, Objective C, Swift</li>
-						<li>DirectX VR via C#</li>
-						<li>OpenGL via C++, Python, Javascript</li>
+						<li>Web 1.0 sites (PHP)</li>
+						<li>Async webservers (Python, Javascript)</li>
+						<li>Private cloud sysadmin stuff (shell)</li>
+						<li>Declarative Service Orchestration™ (Ruby)</li>
+						<li>Mobile apps (Java, Javascript, Objective C, Swift)</li>
+						<li>DirectX and VR (C#)</li>
+						<li>OpenGL (C++, Python, Javascript)</li>
 						<li>Windows, Linux, OS X, iOS, Android, HTML5</li>
 					</ul>
-					<p class="fragment">Everything is terrible</p>
+					<p class="fragment">Everything is Terrible</p>
 				</section>
 				<section data-background="#185">
 					<h1>Have you ever done this?</h1>
 					<ol>
 						<li class="fragment">Open an old project from a few years back</li>
-						<li class="fragment">oh no
-							<p class="fragment">nononono</p>
-							<p class="fragment">i can't even</p>
-							<p class="fragment">i've made a huge mistake</p>
-						</li>
+						<li class="fragment"><span class="code">oh no</span></li>
+						<li class="fragment"><span class="code">i've made a huge mistake</span></li>
+						<li class="fragment">Close project</li>
+						<li class="fragment">Delete project</li>
 					</ol>
 				</section>
-				<section data-background="#101a26">
+				<section data-background="#000">
 					<h1>2004</h1>
+					<img class="fragment" src="img/red-moon.png" />
+				</section>
+				<section data-background="#101a26">
+					<h1>Loading a Model</h1>
 					<pre><code data-trim class="java">
-static PolygonGroup gun; // meshes are called "groups" I guess?
-static {
+static PolygonGroup gun;
+static { //! when exactly does this model get loaded?
 	try {
 		gun = Resources.parseModel("images/gun.txt");
-	} catch (FileNotFoundException e) {}
+	} catch (FileNotFoundException e) {} //! lol error handling
 	catch (IOException e) {}
 }
 					</code></pre>
 				</section>
-				<section data-background="#822">
-					<h1>Problems</h1>
-					<ul>
-						<li>Error handling</li>
-					</ul>
+				<section data-background="#101a26">
+					<h1>Switching Weapons</h1>
+					<pre><code data-trim class="java">
+long changeTime = 500; //! magic number; no comment
+PolygonGroup weaponGroup; //! unnecessary state variable
+public void nextWeapon() {
+	super.nextWeapon(); //! we'll get to this later
+	weaponGroup = group.getGroup("gun");
+	if(weaponGroup != null) { //! defensive coding
+		//! more state. more magic numbers.
+		weaponGroup.xform.velocityAngleX.set(-.003f, 250);
+	}
+	changeTime = 250; //! another magic number
+	changing = true; //! could infer this from changeTime
+}
+				</code></pre>
 				</section>
 				<section data-background="#101a26">
+					<h1>It Gets Worse</h1>
 					<pre><code data-trim class="java">
-PolygonGroup weaponGroup;
-long changeTime = 500;
-boolean changing = false;
+boolean changing = false; //! unnecessary state variable
 public void updateAnimation(long eTime) {
-	if(group.getGroup("gun") == null) {
+	if(group.getGroup("gun") == null) { //! defensive coding
+		//! again, not sure exactly when this will happen
 		group.addGroup((PolygonGroup)gun.clone());
 	}
 	changeTime -= eTime;
 	if(changing && changeTime <= 0) {
 		group.removeGroup("gun");
 		group.addGroup((PolygonGroup)gun.clone());
+		//! what if one time I forget to do this next line?
 		weaponGroup = group.getGroup("gun");
+		//! more state. more magic numbers.
 		weaponGroup.xform.velocityAngleX.set(.003f, 250);
 		changing = false;
 	}
@@ -92,12 +108,173 @@ public void updateAnimation(long eTime) {
 					</code></pre>
 				</section>
 				<section data-background="#822">
+					<h1>The Worst Part</h1>
+					<ul>
+						<li class="fragment">changeTime</li>
+						<li class="fragment">changing</li>
+						<li class="fragment">weaponGroup</li>
+						<li class="fragment">weaponGroup.xform.velocityAngleX</li>
+					</ul>
+					<p class="fragment">
+						Feels like something's missing...
+					</p>
+					<p class="fragment">
+						Even with all that state, there's still another variable somewhere else tracking the current weapon!
+					</p>
+				</section>
+				<section data-background="#822">
+					<h1>The Even Worse Part</h1>
+					<p class="fragment">
+						I never implemented different weapon models.
+					</p>
+					<p class="fragment">
+						Remove your dead code! It's a liability.
+					</p>
+				</section>
+				<section data-background="#158">
+					<h1>How to Improve</h1>
+					<ul>
+						<li class="fragment">Remove duplicated state. It's another liability. You could do it with two variables:
+							<ul>
+								<li>weaponSwitchTimer</li>
+								<li>weaponCurrent</li>
+							</ul>
+						</li>
+						<li class="fragment">Explicitly initialize everything in deterministic order. Your job is to plan ahead, because the computer can't do that.</li>
+						<li class="fragment">Use zero initialization if possible.</li>
+						<li class="fragment">Turn magic numbers into constants.</li>
+						<li class="fragment">Handle errors. Either crash or notify the user and gracefully recover.</li>
+						<li class="fragment">Write some darn comments.</li>
+					</ul>
+				</section>
+				<section data-background="#158">
+					<h1>2005-2006</h1>
+					<img class="fragment" src="img/vivid.png" />
+				</section>
+				<section data-background="#101a26">
+					<h1>Meshes</h1>
+					<pre><code data-trim class="cpp">
+class Mesh {
+public:
+	static std::list&lt;Mesh*&gt; meshes; // Static list of meshes; used for caching and rendering
+	Mesh(LPCSTR file); // Loads the x file specified
+	Mesh();
+	Mesh(const Mesh& vMesh);
+	~Mesh();
+	void LoadMesh(LPCSTR xfile); // Loads the x file specified
+	void DrawSubset(DWORD index); // Draws the specified subset of the mesh
+	DWORD GetNumFaces(); // Returns the number of faces (triangles) in the mesh
+	DWORD GetNumVertices(); // Returns the number of vertices (points) in the mesh
+	DWORD GetFVF(); // Returns the Flexible Vertex Format of the mesh
+	int GetNumSubsets(); // Returns the number of subsets (materials) in the mesh
+	Transform transform; // World transform
+	std::vector&lt;Material&gt;* GetMaterials(); // Gets the list of materials in this mesh
+	std::vector&lt;Cell*&gt;* GetCells(); // Gets the list of cells this mesh is inside
+	D3DXVECTOR3 GetCenter(); // Gets the center of the mesh
+	float GetRadius(); // Gets the distance from the center to the outermost vertex of the mesh
+	bool IsAlpha(); // Returns true if this mesh has alpha information
+	bool IsTranslucent(); // Returns true if this mesh needs access to the back buffer
+	void AddCell(Cell* cell); // Adds a cell to the list of cells this mesh is inside
+	void ClearCells(); // Clears the list of cells this mesh is inside
+protected:
+	ID3DXMesh* d3dmesh; // Actual mesh data
+	LPCSTR filename; // Mesh file name; used for caching
+	DWORD numSubsets; // Number of subsets (materials) in the mesh
+	std::vector&lt;Material&gt; materials; // List of materials; loaded from X file
+	std::vector&lt;Cell*&gt; cells; // List of cells this mesh is inside
+	D3DXVECTOR3 center; // The center of the mesh
+	float radius; // The distance from the center to the outermost vertex of the mesh
+	bool alpha; // True if this mesh has alpha information
+	bool translucent; // True if this mesh needs access to the back buffer
+	void SetTo(Mesh* mesh);
+}
+					</pre></code>
+				</section>
+				<section data-background="#101a26">
+					<h1>You Learned: "Comments"!</h1>
+					<div class="fragment">
+						<p class="left">When someone tells you "comments are good", you end up writing a bunch of comments like this:</p>
+						<pre><code data-trim class="cpp">
+D3DXVECTOR3 GetCenter(); // Gets the center of the mesh
+						</pre></code>
+					</div>
+				</section>
+				<section data-background="#101a26">
+					<h1>You Learned: "Object-Oriented Programming"!</h1>
+					<pre class="fragment"><code data-trim class="cpp">
+// Returns true if this mesh has alpha information
+bool Mesh::IsAlpha() {
+	return alpha;
+}
+// Returns true if this mesh needs access to the back buffer
+bool Mesh::IsTranslucent() {
+	return translucent;
+}
+// Returns the number of faces (triangles) in the mesh
+DWORD Mesh::GetNumFaces() {
+	return d3dmesh->GetNumFaces();
+}
+// Returns the number of vertices (points) in the mesh
+DWORD Mesh::GetNumVertices() {
+	return d3dmesh->GetNumVertices();
+}
+// ...
+					</code></pre>
+				</section>
+				<section data-background="#101a26">
+					<h1>Unloading a Mesh</h1>
+					<pre class="fragment"><code data-trim class="cpp">
+std::list&lt;Mesh*&gt; Mesh::meshes;
+
+Mesh::~Mesh() {
+	// Iterate through all the meshes
+	std::list&lt;Mesh*&gt;::iterator i = meshes.begin();
+	while(i != meshes.end()) { //! deleting all meshes is O(n^2)
+		if(*i == this) {
+			meshes.erase(i); // Erase this object from the list so we don't have a stray pointer in the mesh list
+			break;
+		}
+		i++;
+	} //! unclear who owns this mesh
+	materials.clear();
+	vvd::Release&lt;ID3DXMesh*&gt;(d3dmesh); // Release the mesh data
+}
+					</pre></code>
+				</section>
+				<section data-background="#822">
 					<h1>Problems</h1>
 					<ul>
-						<li class="fragment">Unnecessary state</li>
-						<li class="fragment">Defensive coding</li>
-						<li class="fragment">Initialization happens at unknown time</li>
-						<li class="fragment">Could do with a comment</li>
+						<li class="fragment">Poor OOP design leads to weird unintuitive patterns, like an object "deleting itself" or "serializing itself".</li>
+						<li class="fragment">90% of comments are useless. Another liability.</li>
+						<li class="fragment">Getters and setters.</li>
+					</ul>
+				</section>
+				<section data-background="#158">
+					<h1>How to Improve</h1>
+					<ul>
+						<li class="fragment">Think of a mesh as inert data. It has no functionality.</li>
+						<li class="fragment">Instead of making each mesh super smart, write a resource manager.</li>
+						<li class="fragment">That clears up who's responsible for the mesh.</li>
+						<li class="fragment">Make all fields public.</li>
+						<li class="fragment">Delete comments that explain what the code does.</li>
+						<li class="fragment">Write comments that explain why.</li>
+					</ul>
+				</section>
+				<section data-background="#000">
+					<h1>2007-2008</h1>
+					<p class="fragment">PHP dark ages</p>
+					<img class="fragment" src="img/php.png" />
+				</section>
+				<section data-background="#000">
+					<h1>2009-2010</h1>
+					<img class="fragment" src="img/a3p.jpg" />
+				</section>
+				<section data-background="#158">
+					<h1>Caveats</h1>
+					<ul>
+						<li class="fragment">Ignore dogma.</li>
+						<li class="fragment">Only a Sith deals in absolutes.</li>
+						<li class="fragment">Never say never.</li>
 					</ul>
 				</section>
 				<section data-background="#185">
@@ -122,7 +299,24 @@ public void updateAnimation(long eTime) {
 				transitionSpeed: 'superfast',
 				dependencies:
 				[
-					{ src: 'reveal.js/plugin/highlight/highlight.js', async: false, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{
+						src: 'reveal.js/plugin/highlight/highlight.js',
+						async: false,
+						callback: function()
+						{
+							hljs.initHighlighting();
+
+							var comments = document.querySelectorAll('.hljs-comment');
+							for (var i = 0; i < comments.length; i++)
+							{
+								var code = comments[i].innerText.substr(2, 1);
+								if (code === '!' || code === '@')
+									comments[i].classList.add('fragment');
+								if (code === '!')
+									comments[i].classList.add('bad');
+							}
+						}
+					},
 				],
 			});
 

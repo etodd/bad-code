@@ -90,30 +90,6 @@ body
           transform: translate(0, 300%);
 }
 
-#l1
-{
-  -webkit-transition-duration: 250ms;
-          transition-duration: 250ms;
-}
-
-#l2
-{
-  -webkit-transition-duration: 688ms;
-          transition-duration: 688ms;
-}
-
-#l3
-{
-  -webkit-transition-duration: 4063ms;
-          transition-duration: 4063ms;
-}
-
-#ram
-{
-  -webkit-transition-duration: 12500ms;
-          transition-duration: 12500ms;
-}
-
 /*********************************************
  * HEADERS
  *********************************************/
@@ -164,6 +140,11 @@ body
 	font-size: 0.75em;
 	font-family: 'Bitstream Vera Sans Mono', monospace;
 	line-height: 1.5em;
+}
+
+.reveal .code
+{
+	font-family: 'Bitstream Vera Sans Mono', monospace;
 }
 
 .img
@@ -247,14 +228,6 @@ table.matrix input
 	padding: 0.25em;
 }
 
-div#color-swatch
-{
-	width: 100px;
-	height: 100px;
-	margin-left: auto;
-	margin-right: auto;
-}
-
 /*********************************************
  * SYNTAX HIGHLIGHTING
  *********************************************/
@@ -287,6 +260,11 @@ div#color-swatch
 	tab-size: 4;
 	-moz-tab-size: 4;
 	-o-tab-size: 4;
+}
+
+pre .hljs-comment.bad
+{
+	color: #f98;
 }
 
 .reveal .left
