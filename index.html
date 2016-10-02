@@ -115,10 +115,10 @@ public void updateAnimation(long eTime) {
 						<li class="fragment">weaponGroup</li>
 						<li class="fragment">weaponGroup.xform.velocityAngleX</li>
 					</ul>
-					<p class="fragment">
+					<p class="fragment left">
 						Feels like something's missing...
 					</p>
-					<p class="fragment">
+					<p class="fragment left">
 						Even with all that state, there's still another variable somewhere else tracking the current weapon!
 					</p>
 				</section>
@@ -318,8 +318,20 @@ class TeamEntityController(Controller):
 					<h1>What's Wrong with Globals?</h1>
 					<ul>
 						<li class="fragment">Can lead to spaghetti code</li>
-						<li class="fragment">Function A can break a completely unrelated function B by modifying global state</li>
+						<li class="fragment">Function "A" can break a completely unrelated function "B" by modifying global state</li>
+						<li class="fragment">Therefore, changing function "A" may require a change in function "B".</li>
+						<li class="fragment">Moral of the story: avoid globals</li>
 					</ul>
+				</section>
+				<section data-background="#101a26">
+					<h1>What Happens When You Avoid Globals</h1>
+					<div class="fragment">
+						<p class="left">You pass everything as parameters</p>
+						<pre><code data-trim class="python">
+	def serverUpdate(self, aiWorld, entityGroup, packetUpdate):
+		#...
+						</code></pre>
+					</div>
 				</section>
 				<section data-background="#158">
 					<h1>Caveats</h1>
