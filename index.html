@@ -269,6 +269,58 @@ Mesh::~Mesh() {
 					<h1>2009-2010</h1>
 					<img class="fragment" src="img/a3p.jpg" />
 				</section>
+				<section data-background="#101a26">
+					<h1>Naming</h1>
+					<pre class="fragment"><code data-trim class="python">
+class TeamEntityController(Controller):
+
+	def buildSpawnPacket(self):
+		#...
+	
+	def readSpawnPacket(aiWorld, entityGroup, iterator, entity = None):
+		#...
+	
+	def serverUpdate(self, aiWorld, entityGroup, packetUpdate):
+		#...
+
+	def clientUpdate(self, aiWorld, entityGroup, data = None):
+		#...
+					</pre></code>
+				</section>
+				<section data-background="#101a26">
+					<h1>Ordering: General -> Specific</h1>
+					<p>Helps with code completion and organization.</p>
+					<pre><code data-trim class="python">
+class TeamEntityController(Controller):
+
+	def packetSpawnBuild(self):
+		#...
+	
+	def packetSpawnRead(aiWorld, entityGroup, iterator, entity = None):
+		#...
+	
+	def updateServer(self, aiWorld, entityGroup, packetUpdate):
+		#...
+
+	def updateClient(self, aiWorld, entityGroup, data = None):
+		#...
+					</pre></code>
+				</section>
+				<section data-background="#822">
+					<h1>Globals, Singletons, and Parameters</h1>
+					<ul>
+						<li class="fragment">Common wisdom: globals are evil</li>
+						<li class="fragment">You should pass everything you need as function parameters</li>
+						<li class="fragment">Singletons are better than globals</li>
+					</ul>
+				</section>
+				<section data-background="#822">
+					<h1>What's Wrong with Globals?</h1>
+					<ul>
+						<li class="fragment">Can lead to spaghetti code</li>
+						<li class="fragment">Function A can break a completely unrelated function B by modifying global state</li>
+					</ul>
+				</section>
 				<section data-background="#158">
 					<h1>Caveats</h1>
 					<ul>
