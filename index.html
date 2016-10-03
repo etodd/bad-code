@@ -133,19 +133,42 @@ public void updateAnimation(long eTime) {
 				</section>
 				<section data-background="#158">
 					<h1>How to Improve</h1>
-					<ul>
-						<li class="fragment">Remove duplicated state. It's another liability. You could do it with two variables:
-							<ul>
-								<li>weaponSwitchTimer</li>
-								<li>weaponCurrent</li>
-							</ul>
-						</li>
-						<li class="fragment">Explicitly initialize everything in deterministic order. Your job is to plan ahead, because the computer can't do that.</li>
-						<li class="fragment">Use zero initialization if possible.</li>
-						<li class="fragment">Turn magic numbers into constants.</li>
-						<li class="fragment">Handle errors. Either crash or notify the user and gracefully recover.</li>
-						<li class="fragment">Write some darn comments.</li>
-					</ul>
+					<aside class="notes">
+						<ul>
+							<li>Remove duplicated state. It's another liability. You could do it with two variables:
+								<ul>
+									<li>weaponSwitchTimer</li>
+									<li>weaponCurrent</li>
+								</ul>
+							</li>
+							<li>Explicitly initialize everything in deterministic order. Your job is to plan ahead, because the computer can't do that.</li>
+							<li>Turn magic numbers into constants.</li>
+							<li>Handle errors. Either crash or notify the user and gracefully recover.</li>
+							<li>Write some darn comments.</li>
+							<li>Use zero initialization if possible.</li>
+						</ul>
+					</aside>
+				</section>
+				<section data-background="#101a26">
+					<h1>Zero Initialization</h1>
+					<pre><code data-trim class="fragment java">
+public class Ally extends GameObject {
+	boolean noenemies = true;
+	// ...
+}
+					</pre></code>
+					<aside class="notes">
+						<ul>
+							<li>If possible, the default state of your object should be all zeroes.</li>
+							<li>Makes everything more intuitive.</li>
+							<li>Can also be more efficient in some cases.</li>
+							<li>Name your booleans positively to avoid writing things like:
+								<pre><code data-trim class="java">
+if (!noenemies) { /* ... */ }
+								</pre></code>
+							</li>
+						</ul>
+					</aside>
 				</section>
 				<section data-background="#158">
 					<h1>2005-2006</h1>
@@ -243,22 +266,26 @@ Mesh::~Mesh() {
 				</section>
 				<section data-background="#822">
 					<h1>Problems</h1>
-					<ul>
-						<li class="fragment">Poor OOP design leads to weird unintuitive patterns, like an object "deleting itself" or "serializing itself".</li>
-						<li class="fragment">90% of comments are useless. Another liability.</li>
-						<li class="fragment">Getters and setters.</li>
-					</ul>
+					<aside class="notes">
+						<ul>
+							<li>Poor OOP design leads to weird unintuitive patterns, like an object "deleting itself" or "serializing itself".</li>
+							<li>90% of comments are useless. Another liability.</li>
+							<li>Getters and setters.</li>
+						</ul>
+					</aside>
 				</section>
 				<section data-background="#158">
 					<h1>How to Improve</h1>
-					<ul>
-						<li class="fragment">Think of a mesh as inert data. It has no functionality.</li>
-						<li class="fragment">Instead of making each mesh super smart, write a resource manager.</li>
-						<li class="fragment">That clears up who's responsible for the mesh.</li>
-						<li class="fragment">Make all fields public.</li>
-						<li class="fragment">Delete comments that explain what the code does.</li>
-						<li class="fragment">Write comments that explain why.</li>
-					</ul>
+					<aside class="notes">
+						<ul>
+							<li>Think of a mesh as inert data. It has no functionality.</li>
+							<li>Instead of making each mesh super smart, write a resource manager.</li>
+							<li>That clears up who's responsible for the mesh.</li>
+							<li>Make all fields public.</li>
+							<li>Delete comments that explain what the code does.</li>
+							<li>Write comments that explain why.</li>
+						</ul>
+					</aside>
 				</section>
 				<section data-background="#000">
 					<h1>2007-2008</h1>
@@ -275,16 +302,16 @@ Mesh::~Mesh() {
 class TeamEntityController(Controller):
 
 	def buildSpawnPacket(self):
-		#...
+		# ...
 	
 	def readSpawnPacket(aiWorld, entityGroup, iterator, entity = None):
-		#...
+		# ...
 	
 	def serverUpdate(self, aiWorld, entityGroup, packetUpdate):
-		#...
+		# ...
 
 	def clientUpdate(self, aiWorld, entityGroup, data = None):
-		#...
+		# ...
 					</pre></code>
 				</section>
 				<section data-background="#101a26">
@@ -294,44 +321,138 @@ class TeamEntityController(Controller):
 class TeamEntityController(Controller):
 
 	def packetSpawnBuild(self):
-		#...
+		# ...
 	
 	def packetSpawnRead(aiWorld, entityGroup, iterator, entity = None):
-		#...
+		# ...
 	
 	def updateServer(self, aiWorld, entityGroup, packetUpdate):
-		#...
+		# ...
 
 	def updateClient(self, aiWorld, entityGroup, data = None):
-		#...
+		# ...
 					</pre></code>
 				</section>
 				<section data-background="#822">
-					<h1>Globals, Singletons, and Parameters</h1>
-					<ul>
-						<li class="fragment">Common wisdom: globals are evil</li>
-						<li class="fragment">You should pass everything you need as function parameters</li>
-						<li class="fragment">Singletons are better than globals</li>
-					</ul>
+					<h1>Globals, Parameters, and Singletons</h1>
+					<aside class="notes">
+						<ul>
+							<li>Common wisdom: globals are evil</li>
+							<li>You should pass everything you need as function parameters</li>
+							<li>Singletons are okay</li>
+						</ul>
+					</aside>
 				</section>
 				<section data-background="#822">
 					<h1>What's Wrong with Globals?</h1>
-					<ul>
-						<li class="fragment">Can lead to spaghetti code</li>
-						<li class="fragment">Function "A" can break a completely unrelated function "B" by modifying global state</li>
-						<li class="fragment">Therefore, changing function "A" may require a change in function "B".</li>
-						<li class="fragment">Moral of the story: avoid globals</li>
-					</ul>
+					<aside class="notes">
+						<ul>
+							<li>Can lead to spaghetti code</li>
+							<li>Function "A" can break a completely unrelated function "B" by modifying global state</li>
+							<li>Therefore, changing function "A" may require a change in function "B".</li>
+							<li>Moral of the story: avoid globals</li>
+						</ul>
+					</aside>
 				</section>
 				<section data-background="#101a26">
-					<h1>What Happens When You Avoid Globals</h1>
+					<h1>What Happens When You Try to Avoid Globals</h1>
 					<div class="fragment">
 						<p class="left">You pass everything as parameters</p>
 						<pre><code data-trim class="python">
-	def serverUpdate(self, aiWorld, entityGroup, packetUpdate):
-		#...
+def serverUpdate(self, aiWorld, entityGroup, packetUpdate):
+	# ...
 						</code></pre>
 					</div>
+				</section>
+				<section data-background="#158">
+					<h1>This Will Be Great</h1>
+					<p>I could have multiple EntityGroups! Multiple worlds!</p>
+				</section>
+				<section data-background="#822">
+					<h1>Reality</h1>
+					<aside class="notes">
+						<ul>
+							<li>If every object has access to it, it's still a global. You're just lying to yourself.</li>
+							<li>YAGNI (You Aren't Gonna Need It). How many games need multiple, simultaneous worlds?</li>
+							<li>When you add a new system, you'll be too lazy to edit every update function and pass it as another parameter.</li>
+							<li>Instead, you'll tack it on to one of the existing objects you pass in.</li>
+						</ul>
+					</aside>
+				</section>
+				<section data-background="101a26">
+					<h1>What About Singletons?</h1>
+					<pre class="fragment"><code data-trim class="java">
+public static EntityFactory EntityFactoryInstance() {
+	static EntityFactory i = null;
+	if (i == null)
+		i = EntityFactory();
+	return i;
+}
+					</pre></code>
+					<p class="fragment">It's technically not a global!</p>
+				</section>
+				<section data-background="#822">
+					<h1>Singletons Are Strictly Worse Than Globals</h1>
+					<aside class="notes">
+						<ul>
+							<li>It's still a global. You're just lying to yourself.</li>
+							<li>You don't know when a singleton will be initialized.</li>
+							<li>Globals have a well-defined initialization time.</li>
+							<li>Every time you access a singleton, it's a branch.</li>
+						</ul>
+					</aside>
+				</section>
+				<section data-background="#158">
+					<h1>Just Use Globals</h1>
+					<aside class="notes">
+						<ul>
+							<li>Real problem is code interdependence.</li>
+							<li>Most gameplay code is necessarily interdependent.</li>
+							<li>Think of a game as a series of systems with well-defined boundaries. AI, graphics, etc.</li>
+							<li>Gameplay code constitutes its own system.</li>
+						</ul>
+					</aside>
+				</section>
+				<section data-background="#101a26">
+					<h1>Boolean Parameters</h1>
+					<pre class="fragment"><code data-trim class="python">
+class ObjectEntity:
+	# ...
+	def delete(self, entityGroup, killed = False, localDelete = True):
+		"""Schedules this ObjectEntity to be cleared and removed from the given EntityGroup."""
+		if self.active:
+			self.active = False
+			self.killed = killed #! never conflate deleting and killing
+			if localDelete: #! this should be a separate method
+				entityGroup.deleteEntity(self, killed)
+			else:
+				entityGroup.removeEntity(self)
+			#! what if I call deleteEntity without calling entity.delete?
+					</code></pre>
+				</section>
+				<section data-background="#101a26">
+					<h1>Boolean Parameters</h1>
+					<pre class="fragment"><code data-trim class="python">
+class EntityGroup:
+	def deleteLocal(self, e):
+		# ...
+
+	def deleteRemote(self, e):
+		# ...
+
+	def killLocal(self, e):
+		# ...
+
+	def killRemote(self, e):
+		# ...
+					</code></pre>
+				</section>
+				<section data-background="#101a26">
+					<h1>Another Option: Flags</h1>
+					<pre class="fragment"><code data-trim class="cpp">
+entity_group.remove(e, EntityDeleteLocal | EntityDeleteKilled);
+					</code></pre>
+					<p class="fragment">Be careful, these can get out of hand</p>
 				</section>
 				<section data-background="#158">
 					<h1>Caveats</h1>
@@ -373,14 +494,18 @@ class TeamEntityController(Controller):
 							var comments = document.querySelectorAll('.hljs-comment');
 							for (var i = 0; i < comments.length; i++)
 							{
-								var code = comments[i].innerText.substr(2, 1);
-								if (code === '!' || code === '@')
-									comments[i].classList.add('fragment');
-								if (code === '!')
-									comments[i].classList.add('bad');
+								for (var j = 1; j < 5; j++)
+								{
+									var code = comments[i].innerText.substr(j, 1);
+									if (code === '!' || code === '@')
+										comments[i].classList.add('fragment');
+									if (code === '!')
+										comments[i].classList.add('bad');
+								}
 							}
 						}
 					},
+					{ src: 'reveal.js/plugin/notes/notes.js', async: false },
 				],
 			});
 
