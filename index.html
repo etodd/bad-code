@@ -95,7 +95,7 @@ public void updateAnimation(long eTime) {
 		group.addGroup((PolygonGroup)gun.clone());
 	}
 	changeTime -= eTime;
-	if(changing && changeTime <= 0) {
+	if(changing &amp;&amp; changeTime <= 0) {
 		group.removeGroup("gun");
 		group.addGroup((PolygonGroup)gun.clone());
 		//! what if one time I forget to do this next line?
@@ -235,11 +235,11 @@ bool Mesh::IsTranslucent() {
 }
 // Returns the number of faces (triangles) in the mesh
 DWORD Mesh::GetNumFaces() {
-	return d3dmesh->GetNumFaces();
+	return d3dmesh-&gt;GetNumFaces();
 }
 // Returns the number of vertices (points) in the mesh
 DWORD Mesh::GetNumVertices() {
-	return d3dmesh->GetNumVertices();
+	return d3dmesh-&gt;GetNumVertices();
 }
 // ...
 					</code></pre>
@@ -410,6 +410,7 @@ public static EntityFactory EntityFactoryInstance() {
 							<li>Most gameplay code is necessarily interdependent.</li>
 							<li>Think of a game as a series of systems with well-defined boundaries. AI, graphics, etc.</li>
 							<li>Gameplay code constitutes its own system.</li>
+							<li>More on this later...</li>
 						</ul>
 					</aside>
 				</section>
@@ -478,15 +479,271 @@ if (keys[KEY_F5]) { assert(false); }
 				</section>
 				<section data-background="#158">
 					<h1>Data Binding</h1>
+					<aside class="notes">
+						<ul>
+							<li>Examples: MVVM, React, Angular</li>
+							<li>The dream: set a variable, textbox updates automatically</li>
+						</ul>
+					</aside>
+				</section>
+				<section data-background="#101a26">
+					<h1>The Dream</h1>
+					<pre class="fragment"><code data-trim class="csharp">
+public class TextElement : UIComponent
+{
+	public Property&lt;string&gt; Text = new Property&lt;string&gt; { Value = "" };
+}
+
+public class Player
+{
+	public Property&lt;string&gt; Name = new Property&lt;string&gt; { Value = "Ryu" };
+}
+
+var t = new TextElement();
+var p = new Player();
+t.add(new Binding&lt;string&gt;(t.Text, p.Name));
+					</code></pre>
+				</section>
+				<section data-background="#101a26">
+					<h1>Red Flags</h1>
+					<pre><code data-trim class="csharp">
+public class Property&lt;Type&gt; : IProperty
+{
+	protected Type _value;
+	protected List&lt;IPropertyBinding&gt; bindings; //! inefficient
+
+	public Type Value
+	{
+		get { return this._value; }
+		set
+		{
+			this._value = value;
+			//! weird loop necessary due to binding changes
+			for (int i = this.bindings.Count - 1; i &gt;= 0; i = Math.Min(this.bindings.Count - 1, i - 1))
+				this.bindings[i].OnChanged(this);
+		}
+	}
+}
+					</code></pre>
+				</section>
+				<section data-background="#101a26">
+					<h1>Taking Things Too Far</h1>
+					<pre><code data-trim class="csharp">
+jump.Add(new Binding&lt;bool&gt;(jump.Crouched, player.Character.Crouched));
+jump.Add(new TwoWayBinding&lt;bool&gt;(player.Character.IsSupported, jump.IsSupported));
+jump.Add(new TwoWayBinding&lt;bool&gt;(player.Character.HasTraction, jump.HasTraction));
+jump.Add(new TwoWayBinding&lt;Vector3&gt;(player.Character.LinearVelocity, jump.LinearVelocity));
+jump.Add(new TwoWayBinding&lt;BEPUphysics.Entities.Entity&gt;(jump.SupportEntity, player.Character.SupportEntity));
+jump.Add(new TwoWayBinding&lt;Vector3&gt;(jump.SupportVelocity, player.Character.SupportVelocity));
+jump.Add(new Binding&lt;Vector2&gt;(jump.AbsoluteMovementDirection, player.Character.MovementDirection));
+jump.Add(new Binding&lt;WallRun.State&gt;(jump.WallRunState, wallRun.CurrentState));
+jump.Add(new Binding&lt;float&gt;(jump.Rotation, rotation.Rotation));
+jump.Add(new Binding&lt;Vector3&gt;(jump.Position, transform.Position));
+jump.Add(new Binding&lt;Vector3&gt;(jump.FloorPosition, floor));
+jump.Add(new Binding&lt;float&gt;(jump.MaxSpeed, player.Character.MaxSpeed));
+jump.Add(new Binding&lt;float&gt;(jump.JumpSpeed, player.Character.JumpSpeed));
+jump.Add(new Binding&lt;float&gt;(jump.Mass, player.Character.Mass));
+jump.Add(new Binding&lt;float&gt;(jump.LastRollKickEnded, rollKickSlide.LastRollKickEnded));
+jump.Add(new Binding&lt;Voxel&gt;(jump.WallRunMap, wallRun.WallRunVoxel));
+jump.Add(new Binding&lt;Direction&gt;(jump.WallDirection, wallRun.WallDirection));
+jump.Add(new CommandBinding&lt;Voxel, Voxel.Coord, Direction&gt;(jump.WalkedOn, footsteps.WalkedOn));
+jump.Add(new CommandBinding(jump.DeactivateWallRun, (Action)wallRun.Deactivate));
+jump.FallDamage = fallDamage;
+jump.Predictor = predictor;
+jump.Bind(model);
+jump.Add(new TwoWayBinding&lt;Voxel&gt;(wallRun.LastWallRunMap, jump.LastWallRunMap));
+jump.Add(new TwoWayBinding&lt;Direction&gt;(wallRun.LastWallDirection, jump.LastWallDirection));
+jump.Add(new TwoWayBinding&lt;bool&gt;(rollKickSlide.CanKick, jump.CanKick));
+jump.Add(new TwoWayBinding&lt;float&gt;(player.Character.LastSupportedSpeed, jump.LastSupportedSpeed));
+
+wallRun.Add(new Binding&lt;bool&gt;(wallRun.IsSwimming, player.Character.IsSwimming));
+wallRun.Add(new TwoWayBinding&lt;Vector3&gt;(player.Character.LinearVelocity, wallRun.LinearVelocity));
+wallRun.Add(new TwoWayBinding&lt;Vector3&gt;(transform.Position, wallRun.Position));
+wallRun.Add(new TwoWayBinding&lt;bool&gt;(player.Character.IsSupported, wallRun.IsSupported));
+wallRun.Add(new CommandBinding(wallRun.LockRotation, (Action)rotation.Lock));
+wallRun.Add(new CommandBinding&lt;float&gt;(wallRun.UpdateLockedRotation, rotation.UpdateLockedRotation));
+vault.Add(new CommandBinding(wallRun.Vault, delegate() { vault.Go(true); }));
+wallRun.Predictor = predictor;
+wallRun.Add(new Binding&lt;float&gt;(wallRun.Height, player.Character.Height));
+wallRun.Add(new Binding&lt;float&gt;(wallRun.JumpSpeed, player.Character.JumpSpeed));
+wallRun.Add(new Binding&lt;float&gt;(wallRun.MaxSpeed, player.Character.MaxSpeed));
+wallRun.Add(new TwoWayBinding&lt;float&gt;(rotation.Rotation, wallRun.Rotation));
+wallRun.Add(new TwoWayBinding&lt;bool&gt;(player.Character.AllowUncrouch, wallRun.AllowUncrouch));
+wallRun.Add(new TwoWayBinding&lt;bool&gt;(player.Character.HasTraction, wallRun.HasTraction));
+wallRun.Add(new Binding&lt;float&gt;(wallRun.LastWallJump, jump.LastWallJump));
+wallRun.Add(new Binding&lt;float&gt;(player.Character.LastSupportedSpeed, wallRun.LastSupportedSpeed));
+player.Add(new Binding&lt;WallRun.State&gt;(player.Character.WallRunState, wallRun.CurrentState));
+
+input.Bind(rollKickSlide.RollKickButton, settings.RollKick);
+rollKickSlide.Add(new Binding&lt;bool&gt;(rollKickSlide.EnableCrouch, player.EnableCrouch));
+rollKickSlide.Add(new Binding&lt;float&gt;(rollKickSlide.Rotation, rotation.Rotation));
+rollKickSlide.Add(new Binding&lt;bool&gt;(rollKickSlide.IsSwimming, player.Character.IsSwimming));
+rollKickSlide.Add(new Binding&lt;bool&gt;(rollKickSlide.IsSupported, player.Character.IsSupported));
+rollKickSlide.Add(new Binding&lt;Vector3&gt;(rollKickSlide.FloorPosition, floor));
+rollKickSlide.Add(new Binding&lt;float&gt;(rollKickSlide.Height, player.Character.Height));
+rollKickSlide.Add(new Binding&lt;float&gt;(rollKickSlide.MaxSpeed, player.Character.MaxSpeed));
+rollKickSlide.Add(new Binding&lt;float&gt;(rollKickSlide.JumpSpeed, player.Character.JumpSpeed));
+rollKickSlide.Add(new Binding&lt;Vector3&gt;(rollKickSlide.SupportVelocity, player.Character.SupportVelocity));
+rollKickSlide.Add(new TwoWayBinding&lt;bool&gt;(wallRun.EnableEnhancedWallRun, rollKickSlide.EnableEnhancedRollSlide));
+rollKickSlide.Add(new TwoWayBinding&lt;bool&gt;(player.Character.AllowUncrouch, rollKickSlide.AllowUncrouch));
+rollKickSlide.Add(new TwoWayBinding&lt;bool&gt;(player.Character.Crouched, rollKickSlide.Crouched));
+rollKickSlide.Add(new TwoWayBinding&lt;bool&gt;(player.Character.EnableWalking, rollKickSlide.EnableWalking));
+rollKickSlide.Add(new TwoWayBinding&lt;Vector3&gt;(player.Character.LinearVelocity, rollKickSlide.LinearVelocity));
+rollKickSlide.Add(new TwoWayBinding&lt;Vector3&gt;(transform.Position, rollKickSlide.Position));
+rollKickSlide.Predictor = predictor;
+rollKickSlide.Bind(model);
+rollKickSlide.VoxelTools = voxelTools;
+rollKickSlide.Add(new CommandBinding(rollKickSlide.DeactivateWallRun, (Action)wallRun.Deactivate));
+rollKickSlide.Add(new CommandBinding(rollKickSlide.Footstep, footsteps.Footstep));
+					</code></pre>
+				</section>
+				<section data-background="#822">
+					<h1>Problem: Initialization</h1>
+					<aside class="notes">
+						<ul>
+							<li>Infinite loops</li>
+							<li>Initialization order is important</li>
+							<li>Never figured this out</li>
+						</ul>
+					</aside>
+				</section>
+				<section data-background="#822">
+					<h1>Problem: Animation</h1>
+					<aside class="notes">
+						<ul>
+							<li>Difficult to animate from one state to another</li>
+							<li>Netflix's actual React solution: disable, animate, then re-enable</li>
+						</ul>
+					</aside>
+				</section>
+				<section data-background="#101a26">
+					<h1>Binding On/Off Switch</h1>
+					<pre><code data-trim class="csharp">
+class Binding&lt;T&gt;
+{
+	public bool Enabled;
+}
+					</code></pre>
+					<aside class="notes">
+						<ul>
+							<li>Goal of data binding is to reduce state</li>
+							<li>But every property has a LIST of bindings and every binding has a boolean</li>
+							<li>How can we reduce this state?</li>
+						</ul>
+					</aside>
+				</section>
+				<section data-background="#101a26">
+					<h1>Solution</h1>
+					<pre><code data-trim class="csharp">
+class Binding&lt;T&gt;
+{
+	public Property&lt;bool&gt; Enabled = new Property&lt;bool&gt; { Value = true };
+}
+					</code></pre>
+				</section>
+				<section data-background="#822">
+					<h1>Data Binding</h1>
+					<p>So close but so far</p>
+					<aside class="notes">
+						<ul>
+							<li>Goal is to reduce state, like functional programming</li>
+							<li>Actually creates more state</li>
+						</ul>
+					</aside>
+				</section>
+				<section data-background="#158">
+					<h1>How to Write Functionally</h1>
+					<ul>
+						<li class="fragment">Separate behavior and data</li>
+						<li class="fragment">Write pure functions as much as possible</li>
+						<li class="fragment">Avoid silver bullets</li>
+					</ul>
 				</section>
 				<section data-background="#158">
 					<h1>Entity Component System</h1>
 				</section>
 				<section data-background="#822">
-					<h1>Entities and Components</h1>
+					<h1>Object-Oriented</h1>
+					<ul class="blank">
+						<li>idClass
+						<ul class="blank">
+							<li>idEntity
+							<ul class="blank">
+								<li>idAnimatedEntity
+								<ul class="blank">
+									<li>idWeapon</li>
+									<li>idAFEntity_Base
+									<ul class="blank">
+										<li>idAFEntity_ClawFourFingers</li>
+										<li>idAFEntity_Vehicle
+										<ul class="blank">
+											<li>idAFEntity_VehicleFourWheels</li>
+											<li>idAFEntity_VehicleSixWheels</li>
+										</ul>
+										</li>
+										<li>idAFEntity_Gibbable
+										<ul class="blank">
+											<li>idAFEntity_WithAttachedHead</li>
+											<li>idActor
+											<ul class="blank">
+												<li>idPlayer</li>
+												<li>idAI</li>
+											</ul>
+										</ul>
+										</li>
+									</ul>
+									</li>
+								</ul>
+								</li>
+							</ul>
+							</li>
+						</ul>
+						</li>
+					</ul>
+					<aside class="notes">
+						<ul>
+							<li>Problem: functionality ends up in base classes</li>
+						</ul>
+					</aside>
 				</section>
 				<section data-background="#158">
-					<h1><small style="font-size: 0.5em">Entities Components</small> Systems</h1>
+					<h1>Components</h1>
+					<ul class="blank">
+						<li>idPlayer
+						<ul class="blank">
+							<li>idTransform</li>
+							<li>idHealth</li>
+							<li>idAnimatedModel</li>
+							<li>idAnimator</li>
+							<li>idRigidBody</li>
+							<li>idBipedalCharacterController</li>
+							<li>idPlayerController</li>
+						</ul>
+						</li>
+
+						<li>idAFEntity_VehicleFourWheels
+						<ul class="blank">
+							<li>idTransform</li>
+							<li>idAnimatedModel</li>
+							<li>idRigidBody</li>
+							<li>idFourWheelController</li>
+						</ul>
+						</li>
+
+						<li>...</li>
+					</ul>
+					<aside class="notes">
+						<ul>
+							<li>Composition over inheritance</li>
+							<li>I read about this and went overboard with it</li>
+						</ul>
+					</aside>
+				</section>
+				<section data-background="#822">
+					<h1>Entity Component <small style="font-size: 0.5em">System</small></h1>
+				</section>
+				<section data-background="#158">
+					<h1><small style="font-size: 0.5em">Entity Component</small> System</h1>
 				</section>
 				<section data-background="#822">
 					<h1>Globals Again</h1>
@@ -534,10 +791,13 @@ if (keys[KEY_F5]) { assert(false); }
 								for (var j = 1; j < 5; j++)
 								{
 									var code = comments[i].innerText.substr(j, 1);
-									if (code === '!' || code === '@')
-										comments[i].classList.add('fragment');
 									if (code === '!')
 										comments[i].classList.add('bad');
+									if (code === '!' || code === '@')
+									{
+										comments[i].classList.add('fragment');
+										break;
+									}
 								}
 							}
 						}
