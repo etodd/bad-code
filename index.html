@@ -57,18 +57,6 @@
 					<img class="fragment" src="img/red-moon.png" />
 				</section>
 				<section data-background="#101a26">
-					<h1>Loading a Model</h1>
-					<pre><code data-trim class="java">
-static PolygonGroup gun;
-static { //! when exactly does this model get loaded?
-	try {
-		gun = Resources.parseModel("images/gun.txt");
-	} catch (FileNotFoundException e) {} //! lol error handling
-	catch (IOException e) {}
-}
-					</code></pre>
-				</section>
-				<section data-background="#101a26">
 					<h1>Switching Weapons</h1>
 					<pre><code data-trim class="java">
 long changeTime = 500; //! magic number; no comment
@@ -170,7 +158,7 @@ if (!noenemies) { /* ... */ }
 						</ul>
 					</aside>
 				</section>
-				<section data-background="#158">
+				<section data-background="#000">
 					<h1>2005-2006</h1>
 					<img class="fragment" src="img/vivid.png" />
 				</section>
@@ -379,15 +367,21 @@ def serverUpdate(self, aiWorld, entityGroup, packetUpdate):
 						</ul>
 					</aside>
 				</section>
-				<section data-background="101a26">
+				<section data-background="#101a26">
 					<h1>What About Singletons?</h1>
 					<pre class="fragment"><code data-trim class="java">
-public static EntityFactory EntityFactoryInstance() {
-	static EntityFactory i = null;
-	if (i == null)
-		i = EntityFactory();
-	return i;
+class EntityFactory
+{
+	public static EntityFactory Instance()
+	{
+		static EntityFactory i = null;
+		if (i == null)
+			i = EntityFactory();
+		return i;
+	}
 }
+
+EntityFactory.Instance().DoThing();
 					</pre></code>
 					<p class="fragment">It's technically not a global!</p>
 				</section>
@@ -455,7 +449,7 @@ entity_group.remove(e, EntityDeleteLocal | EntityDeleteKilled);
 					</code></pre>
 					<p class="fragment">Be careful, these can get out of hand</p>
 				</section>
-				<section data-background="#158">
+				<section data-background="#185">
 					<h1>Debugging</h1>
 					<aside class="notes">
 						<ul>
@@ -499,9 +493,7 @@ public class Player
 	public Property&lt;string&gt; Name = new Property&lt;string&gt; { Value = "Ryu" };
 }
 
-var t = new TextElement();
-var p = new Player();
-t.add(new Binding&lt;string&gt;(t.Text, p.Name));
+label.add(new Binding&lt;string&gt;(label.Text, player.Name));
 					</code></pre>
 				</section>
 				<section data-background="#101a26">
@@ -652,12 +644,23 @@ class Binding&lt;T&gt;
 					</aside>
 				</section>
 				<section data-background="#158">
-					<h1>How to Write Functionally</h1>
-					<ul>
-						<li class="fragment">Separate behavior and data</li>
-						<li class="fragment">Write pure functions as much as possible</li>
-						<li class="fragment">Avoid silver bullets</li>
-					</ul>
+					<h1>How to Improve</h1>
+					<aside class="notes">
+						<ul>
+							<li>Separate behavior and data</li>
+							<li>Write pure functions</li>
+							<li>It should be a pain to create state</li>
+						</ul>
+					</aside>
+				</section>
+				<section data-background="#158">
+					<h1>Closures</h1>
+				</section>
+				<section data-background="#822">
+					<h1>Problem</h1>
+				</section>
+				<section data-background="#158">
+					<h1>How to Improve</h1>
 				</section>
 				<section data-background="#158">
 					<h1>Entity Component System</h1>
@@ -739,6 +742,9 @@ class Binding&lt;T&gt;
 						</ul>
 					</aside>
 				</section>
+				<section data-background="#158">
+					<h1>Entity Component System</h1>
+				</section>
 				<section data-background="#822">
 					<h1>Entity Component <small style="font-size: 0.5em">System</small></h1>
 				</section>
@@ -747,13 +753,53 @@ class Binding&lt;T&gt;
 				</section>
 				<section data-background="#822">
 					<h1>Globals Again</h1>
+					<aside class="notes">
+						<ul>
+							<li>Wanted to avoid globals</li>
+							<li>Already tried parameter passing</li>
+							<li>Landed on a uniquely awful solution</li>
+						</ul>
+					</aside>
+				</section>
+				<section data-background="#101a26">
+					<h1>Globals Again</h1>
+					<pre><code data-trim class="csharp">
+public class Component&lt;MainClass&gt; : Bindable, IComponent
+	where MainClass : BaseMain
+{
+
+	// ... way too much other garbage...
+
+	protected MainClass main;
+}
+
+public class FooComponent : Component&lt;Main&gt;
+{
+	void IUpdateable.Update(float dt)
+	{
+		this.main.DoThing();
+	}
+}
+					</code></pre>
+				</section>
+				<section data-background="#185">
+					<h1>Tips</h1>
+					<ul>
+						<li class="fragment">Separate behavior and data</li>
+						<li class="fragment">Write pure functions as much as possible</li>
+						<li class="fragment">Write the client code first</li>
+						<li class="fragment">Write boring code that does what's necessary and no more</li>
+						<li class="fragment">Do not over-architect!</li>
+					</ul>
 				</section>
 				<section data-background="#158">
-					<h1>Takeaway</h1>
+					<h1>Disclaimer</h1>
 					<ul>
 						<li class="fragment">Only a Sith deals in absolutes.</li>
 						<li class="fragment">Never say never.</li>
 						<li class="fragment">Ignore dogma.</li>
+						<li class="fragment">Avoid holy wars.</li>
+						<li class="fragment">Tabs are better than spaces.</li>
 					</ul>
 				</section>
 				<section data-background="#185">
