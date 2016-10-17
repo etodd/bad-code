@@ -58,7 +58,7 @@
 				</section>
 				<section data-background="#101a26">
 					<h1>Switching Weapons</h1>
-					<pre><code data-trim class="java">
+					<pre class="fragment"><code data-trim class="java">
 long changeTime = 500; //! magic number; no comment
 PolygonGroup weaponGroup; //! unnecessary state variable
 public void nextWeapon() {
@@ -75,7 +75,7 @@ public void nextWeapon() {
 				</section>
 				<section data-background="#101a26">
 					<h1>It Gets Worse</h1>
-					<pre><code data-trim class="java">
+					<pre class="fragment"><code data-trim class="java">
 boolean changing = false; //! unnecessary state variable
 public void updateAnimation(long eTime) {
 	if(group.getGroup("gun") == null) { //! defensive coding
@@ -141,8 +141,7 @@ public void updateAnimation(long eTime) {
 					<h1>Zero Initialization</h1>
 					<pre><code data-trim class="fragment java">
 public class Ally extends GameObject {
-	boolean noenemies = true;
-	// ...
+	boolean noenemies = true; //! why
 }
 					</pre></code>
 					<aside class="notes">
@@ -164,7 +163,7 @@ if (!noenemies) { /* ... */ }
 				</section>
 				<section data-background="#101a26">
 					<h1>Meshes</h1>
-					<pre><code data-trim class="cpp">
+					<pre class="fragment"><code data-trim class="cpp">
 class Mesh {
 public:
 	static std::list&lt;Mesh*&gt; meshes; // Static list of meshes; used for caching and rendering
@@ -322,9 +321,10 @@ class TeamEntityController(Controller):
 					</pre></code>
 				</section>
 				<section data-background="#822">
-					<h1>Globals, Parameters, and Singletons</h1>
+					<h1>Globals</h1>
 					<aside class="notes">
 						<ul>
+							<li>Use case: in update function, need to query for an entity.</li>
 							<li>Common wisdom: globals are evil</li>
 							<li>You should pass everything you need as function parameters</li>
 							<li>Singletons are okay</li>
@@ -396,6 +396,38 @@ EntityFactory.Instance().DoThing();
 						</ul>
 					</aside>
 				</section>
+				<section data-background="#101a26">
+					<h1>Another Solution (2010)</h1>
+					<pre class="fragment"><code data-trim class="csharp">
+public class Component
+{
+	protected Main main;
+}
+
+public class FooComponent : Component
+{
+	void Bar()
+	{
+		this.main.DoThing();
+	}
+}
+					</code></pre>
+					<aside class="notes">
+						<ul>
+							<li>Wanted to avoid globals</li>
+							<li>Already tried parameter passing</li>
+						</ul>
+					</aside>
+				</section>
+				<section data-background="#822">
+					<h1>It Is a Global</h1>
+					<aside class="notes">
+						<ul>
+							<li>Memory wasted storing pointers</li>
+							<li>Everything still has access to everything</li>
+						</ul>
+					</aside>
+				</section>
 				<section data-background="#158">
 					<h1>Just Use Globals</h1>
 					<aside class="notes">
@@ -404,7 +436,7 @@ EntityFactory.Instance().DoThing();
 							<li>Most gameplay code is necessarily interdependent.</li>
 							<li>Think of a game as a series of systems with well-defined boundaries. AI, graphics, etc.</li>
 							<li>Gameplay code constitutes its own system.</li>
-							<li>More on this later...</li>
+							<li>Good way to separate system: put it on a thread w/ communication protocol.</li>
 						</ul>
 					</aside>
 				</section>
@@ -653,14 +685,103 @@ class Binding&lt;T&gt;
 						</ul>
 					</aside>
 				</section>
-				<section data-background="#158">
+				<section data-background="#101a26">
 					<h1>Closures</h1>
+					<pre class="fragment"><code data-trim class="csharp">
+bool state = false;
+var toggle = Button();
+toggle.OnClick = delegate()
+{
+	state = !state;
+	toggle.Color = state ? Color.Red : Color.Blue;
+};
+					</code></pre>
+				</section>
+				<section data-background="#101a26">
+					<h1>Taking Things Too Far</h1>
+					<pre><code data-trim class="csharp">
+Func&lt;Property&lt;PCInput.PCInputBinding&gt;, string, bool, bool, Container&gt; addInputSetting = delegate(Property&lt;PCInput.PCInputBinding&gt; setting, string display, bool allowGamepad, bool allowMouse)
+{
+	this.inputBindings.Add(setting);
+	Container button = this.main.UIFactory.CreatePropertyButton&lt;PCInput.PCInputBinding&gt;(display, setting);
+	this.resizeToMenu(button);
+	button.Add(new CommandBinding(button.MouseLeftUp, delegate()
+	{
+		PCInput.PCInputBinding originalValue = setting;
+		setting.Value = new PCInput.PCInputBinding();
+		this.main.UI.EnableMouse.Value = false;
+		input.GetNextInput(delegate(PCInput.PCInputBinding binding)
+		{
+			if (binding.Key == Keys.Escape)
+				setting.Value = originalValue;
+			else
+			{
+				PCInput.PCInputBinding newValue = new PCInput.PCInputBinding();
+				newValue.Key = originalValue.Key;
+				newValue.MouseButton = originalValue.MouseButton;
+				newValue.GamePadButton = originalValue.GamePadButton;
+
+				if (binding.Key != Keys.None)
+				{
+					newValue.Key = binding.Key;
+					newValue.MouseButton = PCInput.MouseButton.None;
+				}
+				else if (allowMouse && binding.MouseButton != PCInput.MouseButton.None)
+				{
+					newValue.Key = Keys.None;
+					newValue.MouseButton = binding.MouseButton;
+				}
+
+				if (allowGamepad)
+				{
+					if (binding.GamePadButton != 0)
+						newValue.GamePadButton = binding.GamePadButton;
+				}
+				else
+					newValue.GamePadButton = 0;
+
+				setting.Value = newValue;
+			}
+			this.main.UI.EnableMouse.Value = true;
+		});
+	}));
+	controlsList.Children.Add(button);
+	return button;
+};
+					</code></pre>
 				</section>
 				<section data-background="#822">
-					<h1>Problem</h1>
+					<h1>Problems</h1>
+					<aside class="notes">
+						<ul>
+							<li>
+								Capturing local variables:
+								<ul>
+									<li>Moves stuff from stack to heap</li>
+									<li>Can't debug state</li>
+									<li>Too easy to create state</li>
+								</ul>
+							</li>
+							<li>
+								Capturing other stuff:
+								<ul>
+									<li>Retain cycles</li>
+									<li>Again, behavior and state are too closely tied</li>
+								</ul>
+							</li>
+						</ul>
+					</aside>
 				</section>
 				<section data-background="#158">
 					<h1>How to Improve</h1>
+					<aside class="notes">
+						<ul>
+							<li>Don't use closures</li>
+							<li>Again, separate behavior and data</li>
+							<li>Closures are too "clever"; keep things simple</li>
+							<li>You should be fully aware of the evil you're doing when you add state</li>
+						</ul>
+					</aside>
 				</section>
 				<section data-background="#158">
 					<h1>Entity Component System</h1>
@@ -751,45 +872,34 @@ class Binding&lt;T&gt;
 				<section data-background="#158">
 					<h1><small style="font-size: 0.5em">Entity Component</small> System</h1>
 				</section>
-				<section data-background="#822">
-					<h1>Globals Again</h1>
-					<aside class="notes">
-						<ul>
-							<li>Wanted to avoid globals</li>
-							<li>Already tried parameter passing</li>
-							<li>Landed on a uniquely awful solution</li>
-						</ul>
-					</aside>
-				</section>
 				<section data-background="#101a26">
-					<h1>Globals Again</h1>
-					<pre><code data-trim class="csharp">
+					<h1>Extensibility</h1>
+					<pre class="fragment"><code data-trim class="csharp">
 public class Component&lt;MainClass&gt; : Bindable, IComponent
 	where MainClass : BaseMain
 {
-
-	// ... way too much other garbage...
-
 	protected MainClass main;
 }
 
 public class FooComponent : Component&lt;Main&gt;
 {
-	void IUpdateable.Update(float dt)
-	{
-		this.main.DoThing();
-	}
 }
 					</code></pre>
 				</section>
+				<section data-background="#101a26">
+					<h1>YAGNI</h1>
+					<aside class="notes">
+						<p>The more abstract you make a system, the less you're going to want to reuse it in the future.</p>
+					</aside>
+				</section>
 				<section data-background="#185">
-					<h1>Tips</h1>
+					<h1>Takeaway</h1>
 					<ul>
 						<li class="fragment">Separate behavior and data</li>
 						<li class="fragment">Write pure functions as much as possible</li>
 						<li class="fragment">Write the client code first</li>
-						<li class="fragment">Write boring code that does what's necessary and no more</li>
-						<li class="fragment">Do not over-architect!</li>
+						<li class="fragment">Write boring, straightforward code that does what's necessary and no more</li>
+						<li class="fragment">Try not to be clever</li>
 					</ul>
 				</section>
 				<section data-background="#158">
@@ -797,7 +907,7 @@ public class FooComponent : Component&lt;Main&gt;
 					<ul>
 						<li class="fragment">Only a Sith deals in absolutes.</li>
 						<li class="fragment">Never say never.</li>
-						<li class="fragment">Ignore dogma.</li>
+						<li class="fragment">Avoid dogma.</li>
 						<li class="fragment">Avoid holy wars.</li>
 						<li class="fragment">Tabs are better than spaces.</li>
 					</ul>
