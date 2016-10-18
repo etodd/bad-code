@@ -21,7 +21,7 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				<section data-background="#101a26">
+				<section data-background="#000">
 					<h1>13 Years of Bad Game Code</h1>
 					<small>
 						Evan Todd<br />
@@ -53,8 +53,8 @@
 					</ol>
 					<aside class="notes">
 						<ul>
-							<li>What you're about to see is unmodified, unaltered</li>
-							<li>NSFW</li>
+							<li>What you're about to see is real</li>
+							<li>NSFW warning</li>
 						</ul>
 					</aside>
 				</section>
@@ -71,11 +71,11 @@
 				<section data-background="#101a26">
 					<h1>Switching Weapons</h1>
 					<pre class="fragment"><code data-trim class="java">
-long changeTime = 500; //! magic number; no comment
+long changeTime = 500;
 PolygonGroup weaponGroup;
 boolean changing = false;
 public void nextWeapon() {
-	super.nextWeapon(); //! we'll get to this later
+	super.nextWeapon();
 	weaponGroup = group.getGroup("gun");
 	if(weaponGroup != null) { //! defensive coding
 		weaponGroup.xform.velocityAngleX.set(-.003f, 250);
@@ -90,11 +90,10 @@ public void nextWeapon() {
 					<pre class="fragment"><code data-trim class="java">
 public void updateAnimation(long eTime) {
 	if(group.getGroup("gun") == null) { //! defensive coding
-		//! again, not sure exactly when this will happen
 		group.addGroup((PolygonGroup)gun.clone());
 	}
 	changeTime -= eTime;
-	if(changing &amp;&amp; changeTime <= 0) {
+	if(changing &amp;&amp; changeTime &lt;= 0) {
 		group.removeGroup("gun");
 		group.addGroup((PolygonGroup)gun.clone());
 		weaponGroup = group.getGroup("gun");
@@ -128,6 +127,21 @@ public void updateAnimation(long eTime) {
 						Remove your dead code! It's a liability.
 					</p>
 				</section>
+				<section data-background="#158">
+					<h1>How to Improve</h1>
+					<aside class="notes">
+						<ul>
+							<li>Remove duplicated state. It's another liability. You could do it with two variables:
+								<ul>
+									<li>weaponSwitchTimer</li>
+									<li>weaponCurrent</li>
+								</ul>
+							</li>
+							<li>Explicitly initialize; no defensive coding</li>
+							<li>Write some darn comments.</li>
+						</ul>
+					</aside>
+				</section>
 				<section data-background="#101a26">
 					<h1>Naming</h1>
 					<pre><code data-trim class="java">
@@ -135,6 +149,10 @@ public class Ally extends GameObject {
 	boolean noenemies = true; //! why
 }
 					</pre></code>
+					<aside class="notes">
+						<p>Name booleans positively</p>
+						<p>Avoid "if (!noenemies)"</p>
+					</aside>
 				</section>
 				<section data-background="#101a26">
 					<h1>Initialization and Error Handling</h1>
@@ -150,24 +168,7 @@ static {
 						<ul>
 							<li>Again, not sure when it executes</li>
 							<li>Loading code scattered throughout codebase</li>
-							<li>Lazy error handling</li>
-						</ul>
-					</aside>
-				</section>
-				<section data-background="#158">
-					<h1>How to Improve</h1>
-					<aside class="notes">
-						<ul>
-							<li>Remove duplicated state. It's another liability. You could do it with two variables:
-								<ul>
-									<li>weaponSwitchTimer</li>
-									<li>weaponCurrent</li>
-								</ul>
-							</li>
-							<li>Explicitly initialize; no defensive coding</li>
-							<li>Turn magic numbers into constants.</li>
-							<li>Errors: either crash immediately or gracefully recover.</li>
-							<li>Write some darn comments.</li>
+							<li>Error handling: either crash immediately or gracefully recover.</li>
 						</ul>
 					</aside>
 				</section>
@@ -305,10 +306,7 @@ Mesh::~Mesh() {
 					<h1>2009-2010</h1>
 					<img class="fragment" src="img/a3p.jpg" />
 					<aside class="notes">
-						<ul>
-							<li>No excuse by this point</li>
-							<li>A3P - Acquire, Attack, Asplode, Pwn</li>
-						</ul>
+						<p>No excuse by this point</p>
 					</aside>
 				</section>
 				<section data-background="#158">
@@ -317,8 +315,6 @@ Mesh::~Mesh() {
 						<ul>
 							<li>Use case: in update function, need to query for an entity.</li>
 							<li>Common wisdom: globals are evil</li>
-							<li>You should pass everything you need as function parameters</li>
-							<li>Singletons are okay</li>
 						</ul>
 					</aside>
 				</section>
@@ -351,36 +347,36 @@ def serverUpdate(self, aiWorld, entityGroup, packetUpdate):
 					<h1>Reality</h1>
 					<aside class="notes">
 						<ul>
-							<li>If every object has access to it, it's still a global. You're just lying to yourself.</li>
-							<li>YAGNI (You Aren't Gonna Need It). How many games need multiple, simultaneous worlds?</li>
-							<li>When you add a new system, you'll be too lazy to edit every update function and pass it as another parameter.</li>
-							<li>Instead, you'll tack it on to one of the existing objects you pass in.</li>
+							<li>If every object has access to it, it's still a global.</li>
+							<li>You Aren't Gonna Need It.</li>
+							<li>When you add a new system, you'll be lazy and just tack it on to an existing object</li>
 						</ul>
 					</aside>
 				</section>
 				<section data-background="#101a26">
-					<h1>What About Singletons?</h1>
+					<h1>What About a Singleton?</h1>
 					<pre class="fragment"><code data-trim class="java">
-class EntityFactory
+class Thing
 {
-	public static EntityFactory Instance()
+	public static Thing Instance()
 	{
-		static EntityFactory i = null;
+		static Thing i = null;
 		if (i == null)
-			i = EntityFactory();
+			i = Thing();
 		return i;
 	}
 }
 
-EntityFactory.Instance().DoThing();
+Thing.Instance().DoThing();
 					</pre></code>
 					<p class="fragment">It's technically not a global!</p>
 				</section>
 				<section data-background="#822">
-					<h1>Singletons Are Strictly Worse Than Globals</h1>
+					<h1>Reality</h1>
 					<aside class="notes">
 						<ul>
 							<li>It's still a global. You're just lying to yourself.</li>
+							<li>Singletons are actually worse.</li>
 							<li>You don't know when a singleton will be initialized.</li>
 							<li>Every time you access a singleton, it's a branch.</li>
 						</ul>
@@ -390,11 +386,11 @@ EntityFactory.Instance().DoThing();
 					<h1>Just Use Globals</h1>
 					<aside class="notes">
 						<ul>
-							<li>Real problem is code interdependence.</li>
-							<li>Most gameplay code is necessarily interdependent.</li>
+							<li>If it needs to be global, make it global. Takes experience to know.</li>
+							<li>Real problem is code interdependence</li>
+							<li>Most gameplay code is necessarily interdependent; make it a cohesive system.</li>
 							<li>Think of a game as a series of systems with well-defined boundaries. AI, graphics, etc.</li>
-							<li>Gameplay code constitutes its own system.</li>
-							<li>Good way to separate system: put it on a thread w/ communication protocol.</li>
+							<li>Good way to separate a system: put it on a thread w/ communication protocol.</li>
 						</ul>
 					</aside>
 				</section>
@@ -402,35 +398,37 @@ EntityFactory.Instance().DoThing();
 					<h1>Boolean Parameters</h1>
 					<pre class="fragment"><code data-trim class="python">
 class ObjectEntity:
-	# ...
-	def delete(self, entityGroup, killed = False, localDelete = True):
-		"""Schedules this ObjectEntity to be cleared and removed from the given EntityGroup."""
-		if self.active:
-			self.active = False
-			self.killed = killed #! never conflate deleting and killing
-			if localDelete: #! this should be a separate method
-				entityGroup.deleteEntity(self, killed)
-			else:
-				entityGroup.removeEntity(self)
-			#! what if I call deleteEntity without calling entity.delete?
+	def delete(self, entityGroup, killed, local):
+		# ...
+		if killed:
+			# ...
+		if local:
+			# ...
 					</code></pre>
+					<aside class="notes">
+						<p>Tempting to just tack on a boolean parameter for similar functionality</p>
+					</aside>
 				</section>
 				<section data-background="#101a26">
-					<h1>Boolean Parameters</h1>
-					<pre class="fragment"><code data-trim class="python">
-class EntityGroup:
-	def deleteLocal(self, e):
-		# ...
-
-	def deleteRemote(self, e):
-		# ...
-
-	def killLocal(self, e):
-		# ...
-
-	def killRemote(self, e):
-		# ...
+					<h1>Client Code</h1>
+					<pre><code data-trim class="python">
+object.delete(entityGroup, True, False)
 					</code></pre>
+					<aside class="notes">
+						<p>It's unreadable.</p>
+					</aside>
+				</section>
+				<section data-background="#101a26">
+					<h1>Improved</h1>
+					<pre><code data-trim class="python">
+entityGroup.deleteLocal(object)
+entityGroup.deleteRemote(object)
+entityGroup.killLocal(object)
+entityGroup.killRemote(object)
+					</code></pre>
+					<aside class="notes">
+						<p>Always write the client code first.</p>
+					</aside>
 				</section>
 				<section data-background="#101a26">
 					<h1>Another Option: Flags</h1>
@@ -447,15 +445,18 @@ class TeamEntityController(Controller):
 	def buildSpawnPacket(self):
 		# ...
 	
-	def readSpawnPacket(aiWorld, entityGroup, iterator, entity = None):
+	def readSpawnPacket(self):
 		# ...
 	
-	def serverUpdate(self, aiWorld, entityGroup, packetUpdate):
+	def serverUpdate(self):
 		# ...
 
-	def clientUpdate(self, aiWorld, entityGroup, data = None):
+	def clientUpdate(self):
 		# ...
 					</pre></code>
+					<aside class="notes">
+						<p>One of the most important remaining unsolved problems in CS</p>
+					</aside>
 				</section>
 				<section data-background="#101a26">
 					<h1>Ordering: General -> Specific</h1>
@@ -466,19 +467,25 @@ class TeamEntityController(Controller):
 	def packetSpawnBuild(self):
 		# ...
 	
-	def packetSpawnRead(aiWorld, entityGroup, iterator, entity = None):
+	def packetSpawnRead(self):
 		# ...
 	
-	def updateServer(self, aiWorld, entityGroup, packetUpdate):
+	def updateServer(self):
 		# ...
 
-	def updateClient(self, aiWorld, entityGroup, data = None):
+	def updateClient(self):
 		# ...
 					</pre></code>
 				</section>
 				<section data-background="#000">
 					<h1>2010 - 2015</h1>
 					<img class="fragment" src="img/lemma.jpg" />
+					<aside class="notes">
+						<ul>
+							<li>First game actually finished, only took 12 years</li>
+							<li>Not many small mistakes, but lots of the biggest ones</li>
+						</ul>
+					</aside>
 				</section>
 				<section data-background="#158">
 					<h1>Data Binding</h1>
@@ -489,17 +496,22 @@ class TeamEntityController(Controller):
 						</ul>
 					</aside>
 				</section>
+				<section data-background="#000">
+					<h1>The Dream</h1>
+					<input style="width: 100%; display: block;" type="textbox" id="src" />
+					<div>Hello, <span id="dst"></span></div>
+				</section>
 				<section data-background="#101a26">
 					<h1>The Dream</h1>
-					<pre class="fragment"><code data-trim class="csharp">
-public class TextElement : UIComponent
-{
-	public Property&lt;string&gt; Text = new Property&lt;string&gt; { Value = "" };
-}
-
+					<pre><code data-trim class="csharp">
 public class Player
 {
 	public Property&lt;string&gt; Name = new Property&lt;string&gt; { Value = "Ryu" };
+}
+
+public class TextElement : UIComponent
+{
+	public Property&lt;string&gt; Text = new Property&lt;string&gt; { Value = "" };
 }
 
 label.add(new Binding&lt;string&gt;(label.Text, player.Name));
@@ -656,126 +668,9 @@ class Binding&lt;T&gt;
 					<h1>How to Improve</h1>
 					<aside class="notes">
 						<ul>
-							<li>Separate behavior and data</li>
-							<li>Write pure functions</li>
+							<li>Make UI actually functional and stateless (immediate UI)</li>
 							<li>It should be a pain to create state</li>
-						</ul>
-					</aside>
-				</section>
-				<section data-background="#101a26">
-					<h1>Closures</h1>
-					<pre class="fragment"><code data-trim class="csharp">
-bool on = false;
-var toggle = Button();
-toggle.OnClick = delegate()
-{
-	on = !on;
-	toggle.Color = on ? Color.White : Color.Black;
-};
-					</code></pre>
-					<aside class="notes">
-						<p>I learned about these and of course went overboard</p>
-					</aside>
-				</section>
-				<section data-background="#101a26">
-					<h1>Taking Things Too Far</h1>
-					<pre><code data-trim class="csharp">
-Func&lt;Property&lt;PCInput.PCInputBinding&gt;, string, bool, bool, Container&gt; addInputSetting = delegate(Property&lt;PCInput.PCInputBinding&gt; setting, string display, bool allowGamepad, bool allowMouse)
-{
-	this.inputBindings.Add(setting);
-	Container button = this.main.UIFactory.CreatePropertyButton&lt;PCInput.PCInputBinding&gt;(display, setting);
-	this.resizeToMenu(button);
-	button.Add(new CommandBinding(button.MouseLeftUp, delegate()
-	{
-		PCInput.PCInputBinding originalValue = setting;
-		setting.Value = new PCInput.PCInputBinding();
-		this.main.UI.EnableMouse.Value = false;
-		input.GetNextInput(delegate(PCInput.PCInputBinding binding)
-		{
-			if (binding.Key == Keys.Escape)
-				setting.Value = originalValue;
-			else
-			{
-				PCInput.PCInputBinding newValue = new PCInput.PCInputBinding();
-				newValue.Key = originalValue.Key;
-				newValue.MouseButton = originalValue.MouseButton;
-				newValue.GamePadButton = originalValue.GamePadButton;
-
-				if (binding.Key != Keys.None)
-				{
-					newValue.Key = binding.Key;
-					newValue.MouseButton = PCInput.MouseButton.None;
-				}
-				else if (allowMouse && binding.MouseButton != PCInput.MouseButton.None)
-				{
-					newValue.Key = Keys.None;
-					newValue.MouseButton = binding.MouseButton;
-				}
-
-				if (allowGamepad)
-				{
-					if (binding.GamePadButton != 0)
-						newValue.GamePadButton = binding.GamePadButton;
-				}
-				else
-					newValue.GamePadButton = 0;
-
-				setting.Value = newValue;
-			}
-			this.main.UI.EnableMouse.Value = true;
-		});
-	}));
-	controlsList.Children.Add(button);
-	return button;
-};
-					</code></pre>
-				</section>
-				<section data-background="#101a26">
-					<h1>Capturing Local Variables</h1>
-					<pre><code data-trim class="csharp">
-bool on = false;
-var toggle = Button();
-toggle.OnClick = delegate()
-{
-	on = !on;
-	toggle.Color = on ? Color.White : Color.Black;
-};
-					</code></pre>
-					<aside class="notes">
-						<p>Problems:</p>
-						<ul>
-							<li>Moves stuff from stack to heap</li>
-							<li>Can't debug state</li>
-							<li>Too easy to create state</li>
-							<li>Quickly gets out of hand</li>
-						</ul>
-					</aside>
-				</section>
-				<section data-background="#101a26">
-					<h1>Capturing Other Stuff</h1>
-					<pre><code data-trim class="csharp">
-var level1 = Button();
-level1.OnClick = delegate()
-{
-	this.LoadLevel(1);
-};
-					</code></pre>
-					<aside class="notes">
-						<p>Problems:</p>
-						<ul>
-							<li>Retain cycles</li>
-							<li>You've still created state</li>
-							<li>Again, behavior and data are too closely tied</li>
-						</ul>
-					</aside>
-				</section>
-				<section data-background="#158">
-					<h1>How to Improve</h1>
-					<aside class="notes">
-						<ul>
-							<li>Don't use closures</li>
-							<li>Again, separate behavior and data; closures tie them together</li>
-							<li>Adding state should be a pain; you should be fully aware of the evil you're doing</li>
+							<li>Separate behavior and state</li>
 						</ul>
 					</aside>
 				</section>
@@ -783,23 +678,25 @@ level1.OnClick = delegate()
 					<h1>Etc., etc.</h1>
 					<aside class="notes">
 						<ul>
+							<li>Another creative approach to globals</li>
+							<li>Closures</li>
 							<li>"Entity" "Component" "System"</li>
 							<li>"Multithreading"</li>
-							<li>Cut this off out of a sense of responsibility for your well-being</li>
+							<li>No time</li>
 						</ul>
 					</aside>
 				</section>
-				<section data-background="#185">
+				<section data-background="#158">
 					<h1>Takeaways</h1>
 					<ol>
 						<li class="fragment">Make decisions upfront instead of lazily leaving them to the computer.</li>
-						<li class="fragment">Separate behavior and data.</li>
+						<li class="fragment">Separate behavior and state.</li>
 						<li class="fragment">Write pure functions.</li>
 						<li class="fragment">Write the client code first.</li>
 						<li class="fragment">Write boring code.</li>
 					</ol>
 				</section>
-				<section data-background="#158">
+				<section data-background="#185">
 					<h1>Disclaimers</h1>
 					<ul>
 						<li class="fragment">Only a Sith deals in absolutes.</li>
@@ -809,7 +706,7 @@ level1.OnClick = delegate()
 						<li class="fragment">Tabs are better than spaces.</li>
 					</ul>
 				</section>
-				<section data-background="#185">
+				<section data-background="#000">
 					<h1>Thank you!</h1>
 					<p><a href="https://etodd.github.io/bad-code">etodd.github.io/bad-code</a></p>
 					<p><a href="http://etodd.io/">etodd.io</a></p>
@@ -858,6 +755,15 @@ level1.OnClick = delegate()
 					{ src: 'reveal.js/plugin/notes/notes.js', async: false },
 				],
 			});
+
+			(function()
+			{
+				var dst = document.getElementById('dst');
+				document.getElementById('src').addEventListener('keyup', function()
+				{
+					dst.innerText = this.value;
+				});
+			})();
 
 			if (window.location.search.match(/print-pdf/gi))
 				$('head').append($('<link rel="stylesheet" type="text/css" href="reveal.js/css/print/pdf.css" />'));
