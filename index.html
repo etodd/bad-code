@@ -51,32 +51,43 @@
 						<li class="fragment">Close project</li>
 						<li class="fragment">Delete project</li>
 					</ol>
+					<aside class="notes">
+						<ul>
+							<li>What you're about to see is unmodified, unaltered</li>
+							<li>NSFW</li>
+						</ul>
+					</aside>
 				</section>
 				<section data-background="#000">
 					<h1>2004</h1>
 					<img class="fragment" src="img/red-moon.png" />
+					<aside class="notes">
+						<ul>
+							<li>Mostly copied out of a book</li>
+							<li>The parts that weren't were atrocious</li>
+						</ul>
+					</aside>
 				</section>
 				<section data-background="#101a26">
 					<h1>Switching Weapons</h1>
 					<pre class="fragment"><code data-trim class="java">
 long changeTime = 500; //! magic number; no comment
-PolygonGroup weaponGroup; //! unnecessary state variable
+PolygonGroup weaponGroup;
+boolean changing = false;
 public void nextWeapon() {
 	super.nextWeapon(); //! we'll get to this later
 	weaponGroup = group.getGroup("gun");
 	if(weaponGroup != null) { //! defensive coding
-		//! more state. more magic numbers.
 		weaponGroup.xform.velocityAngleX.set(-.003f, 250);
 	}
-	changeTime = 250; //! another magic number
-	changing = true; //! could infer this from changeTime
+	changeTime = 250;
+	changing = true;
 }
 				</code></pre>
 				</section>
 				<section data-background="#101a26">
 					<h1>It Gets Worse</h1>
 					<pre class="fragment"><code data-trim class="java">
-boolean changing = false; //! unnecessary state variable
 public void updateAnimation(long eTime) {
 	if(group.getGroup("gun") == null) { //! defensive coding
 		//! again, not sure exactly when this will happen
@@ -86,11 +97,9 @@ public void updateAnimation(long eTime) {
 	if(changing &amp;&amp; changeTime <= 0) {
 		group.removeGroup("gun");
 		group.addGroup((PolygonGroup)gun.clone());
-		//! what if one time I forget to do this next line?
 		weaponGroup = group.getGroup("gun");
-		//! more state. more magic numbers.
 		weaponGroup.xform.velocityAngleX.set(.003f, 250);
-		changing = false;
+		changing = false; //! this variable is unnecessary
 	}
 }
 					</code></pre>
@@ -113,11 +122,37 @@ public void updateAnimation(long eTime) {
 				<section data-background="#822">
 					<h1>The Even Worse Part</h1>
 					<p class="fragment">
-						I never implemented different weapon models.
+						I never even implemented different weapon models.
 					</p>
 					<p class="fragment">
 						Remove your dead code! It's a liability.
 					</p>
+				</section>
+				<section data-background="#101a26">
+					<h1>Naming</h1>
+					<pre><code data-trim class="java">
+public class Ally extends GameObject {
+	boolean noenemies = true; //! why
+}
+					</pre></code>
+				</section>
+				<section data-background="#101a26">
+					<h1>Initialization and Error Handling</h1>
+					<pre class="fragment"><code data-trim class="java">
+static {
+	try {
+		gun = Resources.parseModel("images/gun.txt");
+	} catch (FileNotFoundException e) {} //! *shrug*
+	catch (IOException e) {}
+}
+					</code></pre>
+					<aside class="notes">
+						<ul>
+							<li>Again, not sure when it executes</li>
+							<li>Loading code scattered throughout codebase</li>
+							<li>Lazy error handling</li>
+						</ul>
+					</aside>
 				</section>
 				<section data-background="#158">
 					<h1>How to Improve</h1>
@@ -129,37 +164,22 @@ public void updateAnimation(long eTime) {
 									<li>weaponCurrent</li>
 								</ul>
 							</li>
-							<li>Explicitly initialize everything in deterministic order. Your job is to plan ahead, because the computer can't do that.</li>
+							<li>Explicitly initialize; no defensive coding</li>
 							<li>Turn magic numbers into constants.</li>
-							<li>Handle errors. Either crash or notify the user and gracefully recover.</li>
+							<li>Errors: either crash immediately or gracefully recover.</li>
 							<li>Write some darn comments.</li>
-							<li>Use zero initialization if possible.</li>
-						</ul>
-					</aside>
-				</section>
-				<section data-background="#101a26">
-					<h1>Zero Initialization</h1>
-					<pre><code data-trim class="fragment java">
-public class Ally extends GameObject {
-	boolean noenemies = true; //! why
-}
-					</pre></code>
-					<aside class="notes">
-						<ul>
-							<li>If possible, the default state of your object should be all zeroes.</li>
-							<li>Makes everything more intuitive.</li>
-							<li>Can also be more efficient in some cases.</li>
-							<li>Name your booleans positively to avoid writing things like:
-								<pre><code data-trim class="java">
-if (!noenemies) { /* ... */ }
-								</pre></code>
-							</li>
 						</ul>
 					</aside>
 				</section>
 				<section data-background="#000">
 					<h1>2005-2006</h1>
 					<img class="fragment" src="img/vivid.png" />
+					<aside class="notes">
+						<ul>
+							<li>Engine built for the common man to benefit from my vast knowledge</li>
+							<li>Even had tutorials</li>
+						</ul>
+					</aside>
 				</section>
 				<section data-background="#101a26">
 					<h1>Meshes</h1>
@@ -256,7 +276,9 @@ Mesh::~Mesh() {
 					<aside class="notes">
 						<ul>
 							<li>Poor OOP design leads to weird unintuitive patterns, like an object "deleting itself" or "serializing itself".</li>
-							<li>90% of comments are useless. Another liability.</li>
+							<li>No real-world equivalent; it does too much</li>
+							<li>SetTo() function necessary for copying data; it's too smart, hard to move around</li>
+							<li>90% of comments useless. Another liability.</li>
 							<li>Getters and setters.</li>
 						</ul>
 					</aside>
@@ -267,7 +289,7 @@ Mesh::~Mesh() {
 						<ul>
 							<li>Think of a mesh as inert data. It has no functionality.</li>
 							<li>Instead of making each mesh super smart, write a resource manager.</li>
-							<li>That clears up who's responsible for the mesh.</li>
+							<li>That clears up who's responsible for what.</li>
 							<li>Make all fields public.</li>
 							<li>Delete comments that explain what the code does.</li>
 							<li>Write comments that explain why.</li>
@@ -282,45 +304,14 @@ Mesh::~Mesh() {
 				<section data-background="#000">
 					<h1>2009-2010</h1>
 					<img class="fragment" src="img/a3p.jpg" />
+					<aside class="notes">
+						<ul>
+							<li>No excuse by this point</li>
+							<li>A3P - Acquire, Attack, Asplode, Pwn</li>
+						</ul>
+					</aside>
 				</section>
-				<section data-background="#101a26">
-					<h1>Naming</h1>
-					<pre class="fragment"><code data-trim class="python">
-class TeamEntityController(Controller):
-
-	def buildSpawnPacket(self):
-		# ...
-	
-	def readSpawnPacket(aiWorld, entityGroup, iterator, entity = None):
-		# ...
-	
-	def serverUpdate(self, aiWorld, entityGroup, packetUpdate):
-		# ...
-
-	def clientUpdate(self, aiWorld, entityGroup, data = None):
-		# ...
-					</pre></code>
-				</section>
-				<section data-background="#101a26">
-					<h1>Ordering: General -> Specific</h1>
-					<p>Helps with code completion and organization.</p>
-					<pre><code data-trim class="python">
-class TeamEntityController(Controller):
-
-	def packetSpawnBuild(self):
-		# ...
-	
-	def packetSpawnRead(aiWorld, entityGroup, iterator, entity = None):
-		# ...
-	
-	def updateServer(self, aiWorld, entityGroup, packetUpdate):
-		# ...
-
-	def updateClient(self, aiWorld, entityGroup, data = None):
-		# ...
-					</pre></code>
-				</section>
-				<section data-background="#822">
+				<section data-background="#158">
 					<h1>Globals</h1>
 					<aside class="notes">
 						<ul>
@@ -332,12 +323,12 @@ class TeamEntityController(Controller):
 					</aside>
 				</section>
 				<section data-background="#822">
-					<h1>What's Wrong with Globals?</h1>
+					<h1>What's Wrong With Globals?</h1>
 					<aside class="notes">
 						<ul>
 							<li>Can lead to spaghetti code</li>
 							<li>Function "A" can break a completely unrelated function "B" by modifying global state</li>
-							<li>Therefore, changing function "A" may require a change in function "B".</li>
+							<li>Doesn't work with threads</li>
 							<li>Moral of the story: avoid globals</li>
 						</ul>
 					</aside>
@@ -391,40 +382,7 @@ EntityFactory.Instance().DoThing();
 						<ul>
 							<li>It's still a global. You're just lying to yourself.</li>
 							<li>You don't know when a singleton will be initialized.</li>
-							<li>Globals have a well-defined initialization time.</li>
 							<li>Every time you access a singleton, it's a branch.</li>
-						</ul>
-					</aside>
-				</section>
-				<section data-background="#101a26">
-					<h1>Another Solution (2010)</h1>
-					<pre class="fragment"><code data-trim class="csharp">
-public class Component
-{
-	protected Main main;
-}
-
-public class FooComponent : Component
-{
-	void Bar()
-	{
-		this.main.DoThing();
-	}
-}
-					</code></pre>
-					<aside class="notes">
-						<ul>
-							<li>Wanted to avoid globals</li>
-							<li>Already tried parameter passing</li>
-						</ul>
-					</aside>
-				</section>
-				<section data-background="#822">
-					<h1>It Is a Global</h1>
-					<aside class="notes">
-						<ul>
-							<li>Memory wasted storing pointers</li>
-							<li>Everything still has access to everything</li>
 						</ul>
 					</aside>
 				</section>
@@ -481,23 +439,42 @@ entity_group.remove(e, EntityDeleteLocal | EntityDeleteKilled);
 					</code></pre>
 					<p class="fragment">Be careful, these can get out of hand</p>
 				</section>
-				<section data-background="#185">
-					<h1>Debugging</h1>
-					<aside class="notes">
-						<ul>
-							<li>Add a console</li>
-							<li>Load level command</li>
-							<li>Slow motion command to debug moving stuff</li>
-							<li>Learn to use disassembly view</li>
-						</ul>
-					</aside>
+				<section data-background="#101a26">
+					<h1>Naming</h1>
+					<pre class="fragment"><code data-trim class="python">
+class TeamEntityController(Controller):
+
+	def buildSpawnPacket(self):
+		# ...
+	
+	def readSpawnPacket(aiWorld, entityGroup, iterator, entity = None):
+		# ...
+	
+	def serverUpdate(self, aiWorld, entityGroup, packetUpdate):
+		# ...
+
+	def clientUpdate(self, aiWorld, entityGroup, data = None):
+		# ...
+					</pre></code>
 				</section>
 				<section data-background="#101a26">
-					<h1>Debugging</h1>
-					<p class="left">Add something like this to your game loop:</p>
-					<pre><code data-trim class="cpp">
-if (keys[KEY_F5]) { assert(false); }
-					</code></pre>
+					<h1>Ordering: General -> Specific</h1>
+					<p>Helps with code completion and organization.</p>
+					<pre><code data-trim class="python">
+class TeamEntityController(Controller):
+
+	def packetSpawnBuild(self):
+		# ...
+	
+	def packetSpawnRead(aiWorld, entityGroup, iterator, entity = None):
+		# ...
+	
+	def updateServer(self, aiWorld, entityGroup, packetUpdate):
+		# ...
+
+	def updateClient(self, aiWorld, entityGroup, data = None):
+		# ...
+					</pre></code>
 				</section>
 				<section data-background="#000">
 					<h1>2010 - 2015</h1>
@@ -688,14 +665,17 @@ class Binding&lt;T&gt;
 				<section data-background="#101a26">
 					<h1>Closures</h1>
 					<pre class="fragment"><code data-trim class="csharp">
-bool state = false;
+bool on = false;
 var toggle = Button();
 toggle.OnClick = delegate()
 {
-	state = !state;
-	toggle.Color = state ? Color.Red : Color.Blue;
+	on = !on;
+	toggle.Color = on ? Color.White : Color.Black;
 };
 					</code></pre>
+					<aside class="notes">
+						<p>I learned about these and of course went overboard</p>
+					</aside>
 				</section>
 				<section data-background="#101a26">
 					<h1>Taking Things Too Far</h1>
@@ -750,25 +730,42 @@ Func&lt;Property&lt;PCInput.PCInputBinding&gt;, string, bool, bool, Container&gt
 };
 					</code></pre>
 				</section>
-				<section data-background="#822">
-					<h1>Problems</h1>
+				<section data-background="#101a26">
+					<h1>Capturing Local Variables</h1>
+					<pre><code data-trim class="csharp">
+bool on = false;
+var toggle = Button();
+toggle.OnClick = delegate()
+{
+	on = !on;
+	toggle.Color = on ? Color.White : Color.Black;
+};
+					</code></pre>
 					<aside class="notes">
+						<p>Problems:</p>
 						<ul>
-							<li>
-								Capturing local variables:
-								<ul>
-									<li>Moves stuff from stack to heap</li>
-									<li>Can't debug state</li>
-									<li>Too easy to create state</li>
-								</ul>
-							</li>
-							<li>
-								Capturing other stuff:
-								<ul>
-									<li>Retain cycles</li>
-									<li>Again, behavior and state are too closely tied</li>
-								</ul>
-							</li>
+							<li>Moves stuff from stack to heap</li>
+							<li>Can't debug state</li>
+							<li>Too easy to create state</li>
+							<li>Quickly gets out of hand</li>
+						</ul>
+					</aside>
+				</section>
+				<section data-background="#101a26">
+					<h1>Capturing Other Stuff</h1>
+					<pre><code data-trim class="csharp">
+var level1 = Button();
+level1.OnClick = delegate()
+{
+	this.LoadLevel(1);
+};
+					</code></pre>
+					<aside class="notes">
+						<p>Problems:</p>
+						<ul>
+							<li>Retain cycles</li>
+							<li>You've still created state</li>
+							<li>Again, behavior and data are too closely tied</li>
 						</ul>
 					</aside>
 				</section>
@@ -777,137 +774,37 @@ Func&lt;Property&lt;PCInput.PCInputBinding&gt;, string, bool, bool, Container&gt
 					<aside class="notes">
 						<ul>
 							<li>Don't use closures</li>
-							<li>Again, separate behavior and data</li>
-							<li>Closures are too "clever"; keep things simple</li>
-							<li>You should be fully aware of the evil you're doing when you add state</li>
+							<li>Again, separate behavior and data; closures tie them together</li>
+							<li>Adding state should be a pain; you should be fully aware of the evil you're doing</li>
 						</ul>
 					</aside>
-				</section>
-				<section data-background="#158">
-					<h1>Entity Component System</h1>
 				</section>
 				<section data-background="#822">
-					<h1>Object-Oriented</h1>
-					<ul class="blank">
-						<li>idClass
-						<ul class="blank">
-							<li>idEntity
-							<ul class="blank">
-								<li>idAnimatedEntity
-								<ul class="blank">
-									<li>idWeapon</li>
-									<li>idAFEntity_Base
-									<ul class="blank">
-										<li>idAFEntity_ClawFourFingers</li>
-										<li>idAFEntity_Vehicle
-										<ul class="blank">
-											<li>idAFEntity_VehicleFourWheels</li>
-											<li>idAFEntity_VehicleSixWheels</li>
-										</ul>
-										</li>
-										<li>idAFEntity_Gibbable
-										<ul class="blank">
-											<li>idAFEntity_WithAttachedHead</li>
-											<li>idActor
-											<ul class="blank">
-												<li>idPlayer</li>
-												<li>idAI</li>
-											</ul>
-										</ul>
-										</li>
-									</ul>
-									</li>
-								</ul>
-								</li>
-							</ul>
-							</li>
-						</ul>
-						</li>
-					</ul>
+					<h1>Etc., etc.</h1>
 					<aside class="notes">
 						<ul>
-							<li>Problem: functionality ends up in base classes</li>
+							<li>"Entity" "Component" "System"</li>
+							<li>"Multithreading"</li>
+							<li>Cut this off out of a sense of responsibility for your well-being</li>
 						</ul>
-					</aside>
-				</section>
-				<section data-background="#158">
-					<h1>Components</h1>
-					<ul class="blank">
-						<li>idPlayer
-						<ul class="blank">
-							<li>idTransform</li>
-							<li>idHealth</li>
-							<li>idAnimatedModel</li>
-							<li>idAnimator</li>
-							<li>idRigidBody</li>
-							<li>idBipedalCharacterController</li>
-							<li>idPlayerController</li>
-						</ul>
-						</li>
-
-						<li>idAFEntity_VehicleFourWheels
-						<ul class="blank">
-							<li>idTransform</li>
-							<li>idAnimatedModel</li>
-							<li>idRigidBody</li>
-							<li>idFourWheelController</li>
-						</ul>
-						</li>
-
-						<li>...</li>
-					</ul>
-					<aside class="notes">
-						<ul>
-							<li>Composition over inheritance</li>
-							<li>I read about this and went overboard with it</li>
-						</ul>
-					</aside>
-				</section>
-				<section data-background="#158">
-					<h1>Entity Component System</h1>
-				</section>
-				<section data-background="#822">
-					<h1>Entity Component <small style="font-size: 0.5em">System</small></h1>
-				</section>
-				<section data-background="#158">
-					<h1><small style="font-size: 0.5em">Entity Component</small> System</h1>
-				</section>
-				<section data-background="#101a26">
-					<h1>Extensibility</h1>
-					<pre class="fragment"><code data-trim class="csharp">
-public class Component&lt;MainClass&gt; : Bindable, IComponent
-	where MainClass : BaseMain
-{
-	protected MainClass main;
-}
-
-public class FooComponent : Component&lt;Main&gt;
-{
-}
-					</code></pre>
-				</section>
-				<section data-background="#101a26">
-					<h1>YAGNI</h1>
-					<aside class="notes">
-						<p>The more abstract you make a system, the less you're going to want to reuse it in the future.</p>
 					</aside>
 				</section>
 				<section data-background="#185">
-					<h1>Takeaway</h1>
-					<ul>
-						<li class="fragment">Separate behavior and data</li>
-						<li class="fragment">Write pure functions as much as possible</li>
-						<li class="fragment">Write the client code first</li>
-						<li class="fragment">Write boring, straightforward code that does what's necessary and no more</li>
-						<li class="fragment">Try not to be clever</li>
-					</ul>
+					<h1>Takeaways</h1>
+					<ol>
+						<li class="fragment">Make decisions upfront instead of lazily leaving them to the computer.</li>
+						<li class="fragment">Separate behavior and data.</li>
+						<li class="fragment">Write pure functions.</li>
+						<li class="fragment">Write the client code first.</li>
+						<li class="fragment">Write boring code.</li>
+					</ol>
 				</section>
 				<section data-background="#158">
-					<h1>Disclaimer</h1>
+					<h1>Disclaimers</h1>
 					<ul>
 						<li class="fragment">Only a Sith deals in absolutes.</li>
-						<li class="fragment">Never say never.</li>
 						<li class="fragment">Avoid dogma.</li>
+						<li class="fragment">Avoid shiny tools and patterns.</li>
 						<li class="fragment">Avoid holy wars.</li>
 						<li class="fragment">Tabs are better than spaces.</li>
 					</ul>
