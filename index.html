@@ -55,6 +55,7 @@
 					<img class="fragment" src="img/red-moon.png" />
 					<aside class="notes">
 						<ul>
+							<li>Age 13</li>
 							<li>Mostly copied out of a book</li>
 							<li>The parts that weren't were atrocious</li>
 						</ul>
@@ -214,15 +215,6 @@ protected:
 					</pre></code>
 				</section>
 				<section data-background="#101a26">
-					<h1>You Learned: "Comments"!</h1>
-					<div class="fragment">
-						<p class="left">When someone tells you "comments are good", you end up writing a bunch of comments like this:</p>
-						<pre><code data-trim class="cpp">
-D3DXVECTOR3 GetCenter(); // Gets the center of the mesh
-						</pre></code>
-					</div>
-				</section>
-				<section data-background="#101a26">
 					<h1>You Learned: "Object-Oriented Programming"!</h1>
 					<pre class="fragment"><code data-trim class="cpp">
 // Returns true if this mesh has alpha information
@@ -245,6 +237,15 @@ DWORD Mesh::GetNumVertices() {
 					</code></pre>
 				</section>
 				<section data-background="#101a26">
+					<h1>You Learned: "Comments"!</h1>
+					<div class="fragment">
+						<p class="left">When someone tells you "comments are good", you end up writing a bunch of comments like this:</p>
+						<pre><code data-trim class="cpp">
+D3DXVECTOR3 GetCenter(); // Gets the center of the mesh
+						</pre></code>
+					</div>
+				</section>
+				<section data-background="#101a26">
 					<h1>Unloading a Mesh</h1>
 					<pre class="fragment"><code data-trim class="cpp">
 std::list&lt;Mesh*&gt; Mesh::meshes;
@@ -258,7 +259,7 @@ Mesh::~Mesh() {
 			break;
 		}
 		i++;
-	} //! unclear who owns this mesh
+	} //! unclear who owns this mesh; what kicks off this unloading process?
 	materials.clear();
 	vvd::Release&lt;ID3DXMesh*&gt;(d3dmesh); // Release the mesh data
 }
@@ -340,8 +341,8 @@ def serverUpdate(self, aiWorld, entityGroup, packetUpdate):
 					<aside class="notes">
 						<ul>
 							<li>If every object has access to it, it's still a global.</li>
-							<li>You Aren't Gonna Need It.</li>
-							<li>When you add a new system, you'll be lazy and just tack it on to an existing object</li>
+							<li>When you add a new system, you'll be lazy and just tack it on to an existing object.</li>
+							<li>Multiple worlds: You Aren't Gonna Need It.</li>
 						</ul>
 					</aside>
 				</section>
@@ -399,6 +400,7 @@ class ObjectEntity:
 					</code></pre>
 					<aside class="notes">
 						<p>Tempting to just tack on a boolean parameter for similar functionality</p>
+						<p>Looks fine here, but when you try to use it...</p>
 					</aside>
 				</section>
 				<section data-background="#101a26">
@@ -419,6 +421,7 @@ entityGroup.killLocal(object)
 entityGroup.killRemote(object)
 					</code></pre>
 					<aside class="notes">
+						<p>Function was like five lines; I was just lazy</p>
 						<p>Always write the client code first.</p>
 					</aside>
 				</section>
@@ -508,6 +511,9 @@ public class TextElement : UIComponent
 
 label.add(new Binding&lt;string&gt;(label.Text, player.Name));
 					</code></pre>
+					<aside class="notes">
+						<p>Appealing because it cuts down the amount of state.</p>
+					</aside>
 				</section>
 				<section data-background="#101a26">
 					<h1>Red Flags</h1>
@@ -614,6 +620,7 @@ rollKickSlide.Add(new CommandBinding(rollKickSlide.Footstep, footsteps.Footstep)
 				</section>
 				<section data-background="#822">
 					<h1>Problem: Animation</h1>
+					<a href="https://youtu.be/g01dGsKbXOk?t=18m11s">youtu.be/g01dGsKbXOk?t=18m11s</a>
 					<aside class="notes">
 						<ul>
 							<li>Difficult to animate from one state to another</li>
