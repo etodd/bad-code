@@ -1,4 +1,4 @@
-# 13 Years of Bad Code
+# 13 Years of Bad Game Code
 
 Slides for a talk about bad code.
 
