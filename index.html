@@ -52,34 +52,19 @@
 				</section>
 				<section data-background="#000">
 					<h1>2004</h1>
-					<img class="fragment" src="img/red-moon.png" />
+					<img src="img/red-moon.png" />
 					<aside class="notes">
 						<ul>
 							<li>Age 13</li>
-							<li>Mostly copied out of a book</li>
+							<li>Red Moon: wildly ambitious third-person jet combat game</li>
+							<li>Java software renderer mostly copied out of a book</li>
 							<li>The parts that weren't were atrocious</li>
+							<li>Wanted multiple weapons to switch between</li>
 						</ul>
 					</aside>
 				</section>
 				<section data-background="#101a26">
-					<h1>Switching Weapons</h1>
-					<pre class="fragment"><code data-trim class="java">
-long changeTime = 500;
-PolygonGroup weaponGroup;
-boolean changing = false;
-public void nextWeapon() {
-	super.nextWeapon();
-	weaponGroup = group.getGroup("gun");
-	if(weaponGroup != null) { //! defensive coding
-		weaponGroup.xform.velocityAngleX.set(-.003f, 250);
-	}
-	changeTime = 250;
-	changing = true;
-}
-				</code></pre>
-				</section>
-				<section data-background="#101a26">
-					<h1>It Gets Worse</h1>
+					<h1>Weapon Switching</h1>
 					<pre class="fragment"><code data-trim class="java">
 public void updateAnimation(long eTime) {
 	if(group.getGroup("gun") == null) { //! defensive coding
@@ -95,9 +80,15 @@ public void updateAnimation(long eTime) {
 	}
 }
 					</code></pre>
+					<aside class="notes">
+						<ul>
+							<li>Don't think about it too hard</li>
+							<li>It's clearly a mess, but why exactly?</li>
+						</ul>
+					</aside>
 				</section>
 				<section data-background="#822">
-					<h1>The Worst Part</h1>
+					<h1>State Variables</h1>
 					<ul>
 						<li class="fragment">changeTime</li>
 						<li class="fragment">changing</li>
@@ -107,77 +98,82 @@ public void updateAnimation(long eTime) {
 					<p class="fragment left">
 						Feels like something's missing...
 					</p>
-					<p class="fragment left">
-						Even with all that state, there's still another variable somewhere else tracking the current weapon!
-					</p>
+					<ul class="fragment">
+						<li>currentWeapon</li>
+					</ul>
 				</section>
 				<section data-background="#822">
-					<h1>The Even Worse Part</h1>
+					<h1>The Irony</h1>
 					<p class="fragment">
-						I never even implemented different weapon models.
+						I never even modeled different weapons.
 					</p>
-					<p class="fragment">
-						Remove your dead code! It's a liability.
+					<aside class="notes">
+						<p>Remove your dead code! It's a liability.</p>
 					</p>
 				</section>
 				<section data-background="#158">
 					<h1>How to Improve</h1>
+					<ul class="fragment">
+						<li>weaponSwitchTimer</li>
+						<li>weaponCurrent</li>
+					</ul>
 					<aside class="notes">
 						<ul>
-							<li>Remove duplicated state. It's another liability. You could do it with two variables:
-								<ul>
-									<li>weaponSwitchTimer</li>
-									<li>weaponCurrent</li>
-								</ul>
-							</li>
-							<li>Explicitly initialize; no defensive coding</li>
-							<li>Write some darn comments.</li>
+							<li>Remove duplicated state. It's another liability. You could do it with two variables.</li>
+							<li>Make upfront decision when to initialize</li>
+							<li>Don't leave it up to the computer</li>
+							<li>I just squashed a NullPointerException</li>
+							<li>Defensive coding: don't really know what's going on</li>
 						</ul>
 					</aside>
 				</section>
 				<section data-background="#101a26">
 					<h1>Naming</h1>
 					<pre><code data-trim class="java">
-public class Ally extends GameObject {
-	boolean noenemies = true; //! why
+boolean noenemies = true;
+					</pre></code>
+					<pre class="fragment"><code data-trim class="java">
+if (!noenemies) {
+	//! re-evaluate your life decisions
 }
 					</pre></code>
 					<aside class="notes">
 						<p>Name booleans positively</p>
-						<p>Avoid "if (!noenemies)"</p>
+						<p>Zero initialization</p>
 					</aside>
 				</section>
 				<section data-background="#101a26">
-					<h1>Initialization and Error Handling</h1>
-					<pre class="fragment"><code data-trim class="java">
+					<pre><code data-trim class="java">
 static {
 	try {
 		gun = Resources.parseModel("images/gun.txt");
-	} catch (FileNotFoundException e) {} //! *shrug*
+	} catch (FileNotFoundException e) {}
 	catch (IOException e) {}
 }
 					</code></pre>
 					<aside class="notes">
 						<ul>
-							<li>Again, not sure when it executes</li>
-							<li>Loading code scattered throughout codebase</li>
-							<li>Error handling: either crash immediately or gracefully recover.</li>
+							<li>You might want to handle the error better, but I think the opposite</li>
+							<li>Never too much error <em>checking</em>, but can have too much <em>handling</em>.</li>
+							<li>Again: upfront decision. Crash immediately or gracefully recover.</li>
+							<li>Can't play game without gun</li>
+							<li>Unfortunately Java requires these exceptions to be caught. Leads to lazy error handling like this</li>
 						</ul>
 					</aside>
 				</section>
 				<section data-background="#000">
-					<h1>2005-2006</h1>
-					<img class="fragment" src="img/vivid.png" />
+					<h1>2005 - 2006</h1>
+					<img src="img/vivid.png" />
 					<aside class="notes">
 						<ul>
 							<li>Engine built for the common man to benefit from my vast knowledge</li>
 							<li>Even had tutorials</li>
+							<li>Learned that Object-Oriented Programming is Good™</li>
 						</ul>
 					</aside>
 				</section>
 				<section data-background="#101a26">
-					<h1>Meshes</h1>
-					<pre class="fragment"><code data-trim class="cpp">
+					<pre><code data-trim class="cpp">
 class Mesh {
 public:
 	static std::list&lt;Mesh*&gt; meshes; // Static list of meshes; used for caching and rendering
@@ -215,98 +211,86 @@ protected:
 					</pre></code>
 				</section>
 				<section data-background="#101a26">
-					<h1>You Learned: "Object-Oriented Programming"!</h1>
-					<pre class="fragment"><code data-trim class="cpp">
-// Returns true if this mesh has alpha information
-bool Mesh::IsAlpha() {
-	return alpha;
-}
-// Returns true if this mesh needs access to the back buffer
-bool Mesh::IsTranslucent() {
-	return translucent;
-}
-// Returns the number of faces (triangles) in the mesh
-DWORD Mesh::GetNumFaces() {
-	return d3dmesh-&gt;GetNumFaces();
-}
-// Returns the number of vertices (points) in the mesh
-DWORD Mesh::GetNumVertices() {
-	return d3dmesh-&gt;GetNumVertices();
-}
-// ...
-					</code></pre>
-				</section>
-				<section data-background="#101a26">
 					<h1>You Learned: "Comments"!</h1>
-					<div class="fragment">
-						<p class="left">When someone tells you "comments are good", you end up writing a bunch of comments like this:</p>
-						<pre><code data-trim class="cpp">
+					<pre class="fragment"><code data-trim class="cpp">
 D3DXVECTOR3 GetCenter(); // Gets the center of the mesh
-						</pre></code>
-					</div>
+					</pre></code>
+					<aside class="notes">
+						<p>When someone tells you "comments are good", you write gems like this</p>
+					</aside>
 				</section>
 				<section data-background="#101a26">
-					<h1>Unloading a Mesh</h1>
-					<pre class="fragment"><code data-trim class="cpp">
-std::list&lt;Mesh*&gt; Mesh::meshes;
-
-Mesh::~Mesh() {
-	// Iterate through all the meshes
-	std::list&lt;Mesh*&gt;::iterator i = meshes.begin();
-	while(i != meshes.end()) { //! deleting all meshes is O(n^2)
-		if(*i == this) {
-			meshes.erase(i); // Erase this object from the list so we don't have a stray pointer in the mesh list
-			break;
-		}
-		i++;
-	} //! unclear who owns this mesh; what kicks off this unloading process?
-	materials.clear();
-	vvd::Release&lt;ID3DXMesh*&gt;(d3dmesh); // Release the mesh data
-}
-					</pre></code>
-				</section>
-				<section data-background="#822">
 					<h1>Problems</h1>
+					<pre><code data-trim class="cpp">
+ID3DXMesh* d3dmesh;
+LPCSTR filename;
+DWORD numSubsets;
+std::vector&lt;Material&gt; materials;
+std::vector&lt;Cell*&gt; cells;
+D3DXVECTOR3 center;
+float radius;
+bool alpha;
+bool translucent;
+					</pre></code>
 					<aside class="notes">
 						<ul>
-							<li>Poor OOP design leads to weird unintuitive patterns, like an object "deleting itself" or "serializing itself".</li>
-							<li>No real-world equivalent; it does too much</li>
+							<li>No real-world equivalent; it does too much; hard to think about</li>
+							<li>Is it a data container?</li>
+							<li>Is it a resource loader?</li>
+							<li>Is it a renderer?</li>
 							<li>SetTo() function necessary for copying data; it's too smart, hard to move around</li>
-							<li>90% of comments useless. Another liability.</li>
-							<li>Getters and setters.</li>
+							<li>Getters and setters also necessary.</li>
 						</ul>
 					</aside>
 				</section>
-				<section data-background="#158">
+				<section data-background="#101a26">
 					<h1>How to Improve</h1>
+					<pre><code data-trim class="cpp">
+struct Mesh
+{
+	Array&lt;Vec3&gt; vertices;
+	Array&lt;int&gt; indices;
+	Vec3 center;
+	float radius;
+};
+					</pre></code>
 					<aside class="notes">
 						<ul>
 							<li>Think of a mesh as inert data. It has no functionality.</li>
 							<li>Instead of making each mesh super smart, write a resource manager.</li>
-							<li>That clears up who's responsible for what.</li>
-							<li>Make all fields public.</li>
-							<li>Delete comments that explain what the code does.</li>
-							<li>Write comments that explain why.</li>
+							<li>Make all fields public; no setters and getters</li>
+							<li>Split rendering and loading into separate systems (not objects)</li>
+						</ul>
+					</aside>
+				</section>
+				<section data-background="#158">
+					<h1>Comment Manifesto</h1>
+					<p class="fragment">Delete 'em. They're a liability. Except for:</p>
+					<ul>
+						<li class="fragment">Comments that explain <em>why</em>, rather than <em>what</em>.</li>
+						<li class="fragment">Comments that label a giant chunk of code. Useful for navigation.</li>
+						<li class="fragment">Comments that explain the representation of data in memory.</li>
+					</ul>
+					<aside class="notes">
+						<ul>
+							<li>Comments get out of date; not checked by compiler</li>
+							<li>"Why" comments are the most useful. Ideally, code should say what it's doing, i.e. widget.frobnicate()</li>
+							<li>Last type: sometimes not possible to map a concept intuitively to memory; comments are necessary to describe the mapping.</li>
 						</ul>
 					</aside>
 				</section>
 				<section data-background="#000">
-					<h1>2007-2008</h1>
-					<p class="fragment">PHP dark ages</p>
-					<img class="fragment" src="img/php.png" />
+					<h1>2007 - 2008</h1>
+					<p>PHP dark ages</p>
+					<img src="img/php.png" />
 				</section>
 				<section data-background="#000">
-					<h1>2009-2010</h1>
-					<img class="fragment" src="img/a3p.jpg" />
-					<aside class="notes">
-						<p>No excuse by this point</p>
-					</aside>
-				</section>
-				<section data-background="#158">
-					<h1>Globals</h1>
+					<h1>2009 - 2010</h1>
+					<img src="img/a3p.jpg" />
 					<aside class="notes">
 						<ul>
-							<li>Use case: in update function, need to query for an entity.</li>
+							<li>Python-based third-person multiplayer shooter called <em>Acquire, Attack, Asplode, Pwn</em>.</li>
+							<li>I'm in college; no excuse at this point for the cringe</li>
 							<li>Common wisdom: globals are evil</li>
 						</ul>
 					</aside>
@@ -315,6 +299,7 @@ Mesh::~Mesh() {
 					<h1>What's Wrong With Globals?</h1>
 					<aside class="notes">
 						<ul>
+							<li>Use case: in update function, need to query for an entity.</li>
 							<li>Can lead to spaghetti code</li>
 							<li>Function "A" can break a completely unrelated function "B" by modifying global state</li>
 							<li>Doesn't work with threads</li>
@@ -323,52 +308,52 @@ Mesh::~Mesh() {
 					</aside>
 				</section>
 				<section data-background="#101a26">
-					<h1>What Happens When You Try to Avoid Globals</h1>
-					<div class="fragment">
-						<p class="left">You pass everything as parameters</p>
-						<pre><code data-trim class="python">
-def serverUpdate(self, aiWorld, entityGroup, packetUpdate):
-	# ...
-						</code></pre>
-					</div>
-				</section>
-				<section data-background="#158">
-					<h1>This Will Be Great</h1>
-					<p>I could have multiple EntityGroups! Multiple worlds!</p>
+					<pre><code data-trim class="python">
+class GameObject:
+	def update(self, world):
+		# ...
+					</code></pre>
+					<aside class="notes">
+						<ul>
+							<li>This is what happens when you try to avoid globals</li>
+							<li>Common wisdom: self-contained functions</li>
+							<li>Reality: most gameplay code needs access to everything</li>
+							<li>You cram your globals into a "world" object and pass it around everywhere</li>
+							<li>This is great. I could have multiple EntityGroups! Multiple worlds!</li>
+						</ul>
+					</aside>
 				</section>
 				<section data-background="#822">
 					<h1>Reality</h1>
 					<aside class="notes">
 						<ul>
 							<li>If every object has access to it, it's still a global.</li>
-							<li>When you add a new system, you'll be lazy and just tack it on to an existing object.</li>
-							<li>Multiple worlds: You Aren't Gonna Need It.</li>
+							<li>Multiple worlds: never needed, never tested, probably wouldn't work</li>
+							<li>Once you start tea-totalling globals, you find weird ways of deluding yourself</li>
 						</ul>
 					</aside>
 				</section>
 				<section data-background="#101a26">
-					<h1>What About a Singleton?</h1>
-					<pre class="fragment"><code data-trim class="java">
+					<pre><code data-trim class="java">
 class Thing
 {
+	static Thing i = null;
 	public static Thing Instance()
 	{
-		static Thing i = null;
 		if (i == null)
-			i = Thing();
+			i = new Thing();
 		return i;
 	}
 }
 
-Thing.Instance().DoThing();
+Thing thing = Thing.Instance();
 					</pre></code>
-					<p class="fragment">It's technically not a global!</p>
-				</section>
-				<section data-background="#822">
-					<h1>Reality</h1>
 					<aside class="notes">
+						<p>Singleton</p>
+						<p>Analogy: Dad told me to avoid empty "to be" verbs. Instead of "I was thinking", write "I thought". I attempted to avoid all small words, including "to", "the", "it", etc.</p>
+						<p>Singleton is technically not a global, but the reality is:</p>
 						<ul>
-							<li>It's still a global. You're just lying to yourself.</li>
+							<li>All the potential pitfalls of globals still apply. Just lying to yourself.</li>
 							<li>Singletons are actually worse.</li>
 							<li>You don't know when a singleton will be initialized.</li>
 							<li>Every time you access a singleton, it's a branch.</li>
@@ -380,6 +365,7 @@ Thing.Instance().DoThing();
 					<aside class="notes">
 						<ul>
 							<li>If it needs to be global, make it global. Takes experience to know.</li>
+							<li>Nothing wrong with grouping global variables together into a single structure.</li>
 							<li>Real problem is code interdependence</li>
 							<li>Most gameplay code is necessarily interdependent; make it a cohesive system.</li>
 							<li>Think of a game as a series of systems with well-defined boundaries. AI, graphics, etc.</li>
@@ -389,9 +375,9 @@ Thing.Instance().DoThing();
 				</section>
 				<section data-background="#101a26">
 					<h1>Boolean Parameters</h1>
-					<pre class="fragment"><code data-trim class="python">
+					<pre><code data-trim class="python">
 class ObjectEntity:
-	def delete(self, entityGroup, killed, local):
+	def delete(self, killed, local):
 		# ...
 		if killed:
 			# ...
@@ -406,35 +392,28 @@ class ObjectEntity:
 				<section data-background="#101a26">
 					<h1>Client Code</h1>
 					<pre><code data-trim class="python">
-object.delete(entityGroup, True, False)
+object.delete(True, False)
 					</code></pre>
 					<aside class="notes">
 						<p>It's unreadable.</p>
 					</aside>
 				</section>
 				<section data-background="#101a26">
-					<h1>Improved</h1>
+					<h1>Write the Client Code First</h1>
 					<pre><code data-trim class="python">
-entityGroup.deleteLocal(object)
-entityGroup.deleteRemote(object)
-entityGroup.killLocal(object)
-entityGroup.killRemote(object)
+object.deleteLocal()
+object.deleteRemote()
+object.killLocal()
+object.killRemote()
 					</code></pre>
 					<aside class="notes">
+						<p>Then go implement these functions.</p>
 						<p>Function was like five lines; I was just lazy</p>
-						<p>Always write the client code first.</p>
 					</aside>
 				</section>
 				<section data-background="#101a26">
-					<h1>Another Option: Flags</h1>
-					<pre class="fragment"><code data-trim class="cpp">
-entity_group.remove(e, EntityDeleteLocal | EntityDeleteKilled);
-					</code></pre>
-					<p class="fragment">Be careful, these can get out of hand</p>
-				</section>
-				<section data-background="#101a26">
 					<h1>Naming</h1>
-					<pre class="fragment"><code data-trim class="python">
+					<pre><code data-trim class="python">
 class TeamEntityController(Controller):
 
 	def buildSpawnPacket(self):
@@ -450,7 +429,7 @@ class TeamEntityController(Controller):
 		# ...
 					</pre></code>
 					<aside class="notes">
-						<p>One of the most important remaining unsolved problems in CS</p>
+						<p>One of the two remaining unsolved problems in computer science, alongside being cache invalidation and off-by-one errors.</p>
 					</aside>
 				</section>
 				<section data-background="#101a26">
@@ -474,7 +453,7 @@ class TeamEntityController(Controller):
 				</section>
 				<section data-background="#000">
 					<h1>2010 - 2015</h1>
-					<img class="fragment" src="img/lemma.jpg" />
+					<img src="img/lemma.jpg" />
 					<aside class="notes">
 						<ul>
 							<li>First game actually finished, only took 12 years</li>
@@ -492,7 +471,6 @@ class TeamEntityController(Controller):
 					</aside>
 				</section>
 				<section data-background="#000">
-					<h1>The Dream</h1>
 					<input style="width: 100%; display: block;" type="textbox" id="src" />
 					<div>Hello, <span id="dst"></span></div>
 				</section>
@@ -512,7 +490,10 @@ public class TextElement : UIComponent
 label.add(new Binding&lt;string&gt;(label.Text, player.Name));
 					</code></pre>
 					<aside class="notes">
-						<p>Appealing because it cuts down the amount of state.</p>
+						<ul>
+							<li>Appealing because it cuts down the amount of state.</li>
+							<li>Can keep the UI and game code separate</li>
+						</ul>
 					</aside>
 				</section>
 				<section data-background="#101a26">
@@ -521,7 +502,7 @@ label.add(new Binding&lt;string&gt;(label.Text, player.Name));
 public class Property&lt;Type&gt; : IProperty
 {
 	protected Type _value;
-	protected List&lt;IPropertyBinding&gt; bindings; //! inefficient
+	protected List&lt;IPropertyBinding&gt; bindings; //! heap allocation
 
 	public Type Value
 	{
@@ -536,9 +517,11 @@ public class Property&lt;Type&gt; : IProperty
 	}
 }
 					</code></pre>
+					<aside class="notes">
+						<p>Things escalated...</p>
+					</aside>
 				</section>
 				<section data-background="#101a26">
-					<h1>Taking Things Too Far</h1>
 					<pre><code data-trim class="csharp">
 jump.Add(new Binding&lt;bool&gt;(jump.Crouched, player.Character.Crouched));
 jump.Add(new TwoWayBinding&lt;bool&gt;(player.Character.IsSupported, jump.IsSupported));
@@ -607,29 +590,27 @@ rollKickSlide.VoxelTools = voxelTools;
 rollKickSlide.Add(new CommandBinding(rollKickSlide.DeactivateWallRun, (Action)wallRun.Deactivate));
 rollKickSlide.Add(new CommandBinding(rollKickSlide.Footstep, footsteps.Footstep));
 					</code></pre>
-				</section>
-				<section data-background="#822">
-					<h1>Problem: Initialization</h1>
 					<aside class="notes">
 						<ul>
-							<li>Infinite loops</li>
-							<li>Initialization order is important</li>
-							<li>Never figured this out</li>
-						</ul>
-					</aside>
-				</section>
-				<section data-background="#822">
-					<h1>Problem: Animation</h1>
-					<a href="https://youtu.be/g01dGsKbXOk?t=18m11s">youtu.be/g01dGsKbXOk?t=18m11s</a>
-					<aside class="notes">
-						<ul>
-							<li>Difficult to animate from one state to another</li>
-							<li>Netflix's actual React solution: disable, animate, then re-enable</li>
+							<li>Initialization:
+								<ul>
+									<li>Infinite loops</li>
+									<li>Initialization order is important</li>
+									<li>Never figured this out</li>
+								</ul>
+							</li>
+							<li>
+								<ul>
+									<li>Difficult to animate from one state to another</li>
+									<li><a href="https://youtu.be/g01dGsKbXOk?t=18m11s">Netflix talk</a></li>
+									<li>Netflix's actual React solution: disable, animate, then re-enable</li>
+									<li>I too realized the benefit of an on/off switch</li>
+								</ul>
+							</li>
 						</ul>
 					</aside>
 				</section>
 				<section data-background="#101a26">
-					<h1>Binding On/Off Switch</h1>
 					<pre><code data-trim class="csharp">
 class Binding&lt;T&gt;
 {
@@ -645,31 +626,19 @@ class Binding&lt;T&gt;
 					</aside>
 				</section>
 				<section data-background="#101a26">
-					<h1>Solution</h1>
 					<pre><code data-trim class="csharp">
 class Binding&lt;T&gt;
 {
 	public Property&lt;bool&gt; Enabled = new Property&lt;bool&gt; { Value = true };
 }
 					</code></pre>
-				</section>
-				<section data-background="#822">
-					<h1>Data Binding</h1>
-					<p>So close but so far</p>
 					<aside class="notes">
+						<p>I really did try this</p>
 						<ul>
-							<li>Goal is to reduce state, like functional programming</li>
-							<li>Actually creates more state</li>
-						</ul>
-					</aside>
-				</section>
-				<section data-background="#158">
-					<h1>How to Improve</h1>
-					<aside class="notes">
-						<ul>
+							<li>Goal is to reduce state, like functional programming, but actually creates more state</li>
 							<li>Make UI actually functional and stateless (immediate UI)</li>
 							<li>It should be a pain to create state</li>
-							<li>Separate behavior and state</li>
+							<li>Separate behavior and state; a binding is both</li>
 						</ul>
 					</aside>
 				</section>
@@ -686,7 +655,6 @@ class Binding&lt;T&gt;
 					</aside>
 				</section>
 				<section data-background="#158">
-					<h1>Takeaways</h1>
 					<ol>
 						<li class="fragment">Make decisions upfront instead of lazily leaving them to the computer.</li>
 						<li class="fragment">Separate behavior and state.</li>
@@ -694,21 +662,10 @@ class Binding&lt;T&gt;
 						<li class="fragment">Write the client code first.</li>
 						<li class="fragment">Write boring code.</li>
 					</ol>
-				</section>
-				<section data-background="#185">
-					<h1>Disclaimers</h1>
-					<ul>
-						<li class="fragment">Only a Sith deals in absolutes.</li>
-						<li class="fragment">Avoid dogma.</li>
-						<li class="fragment">Avoid shiny tools and patterns.</li>
-						<li class="fragment">Avoid holy wars.</li>
-						<li class="fragment">Tabs are better than spaces.</li>
-					</ul>
-				</section>
-				<section data-background="#000">
-					<h1>Thank you!</h1>
-					<p><a href="https://etodd.github.io/bad-code">etodd.github.io/bad-code</a></p>
-					<p><a href="http://etodd.io/">etodd.io</a></p>
+					<div class="fragment">
+						<h2>Thank you!</h1>
+						<p>Read the article: <a href="http://etodd.io/">etodd.io</a></p>
+					</div>
 				</section>
 			</div>
 		</div>
